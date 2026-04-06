@@ -45,6 +45,15 @@ window.McpServersPage = {
             '</div>' +
             '<div class="mcp-page-scroll">' +
                 '<p class="mcp-desc" style="margin-bottom:8px">' + (L('McpDescription') || '') + '</p>' +
+                '<div style="display:flex;align-items:center;margin-bottom:8px">' +
+                    '<label class="skills-master-toggle" id="mcp-select-all" style="cursor:pointer">' +
+                        '<span class="skills-row-check">' +
+                            '<input id="mcp-master-toggle" type="checkbox" checked>' +
+                            '<span class="skills-row-check-mark"></span>' +
+                        '</span>' +
+                        '<span id="mcp-master-label" class="skills-master-toggle-label">' + (L('SkillsSelectNone') || 'Select None') + '</span>' +
+                    '</label>' +
+                '</div>' +
                 '<div class="mcp-two-col">' +
                     '<div class="card mcp-col-card">' +
                         '<div class="card-body" style="padding:8px">' +
@@ -113,6 +122,19 @@ window.McpServersPage = {
         // Close button
         var mcpCloseBtn = document.getElementById('mcp-close-btn');
         if (mcpCloseBtn) mcpCloseBtn.addEventListener('click', function () { Bridge.send('closeWindow'); });
+
+        // Select All / None toggle
+        var mcpMasterToggle = document.getElementById('mcp-master-toggle');
+        var mcpMasterLabel = document.getElementById('mcp-master-label');
+        if (mcpMasterToggle) {
+            mcpMasterToggle.addEventListener('change', function () {
+                var checked = mcpMasterToggle.checked;
+                document.querySelectorAll('.mcp-row-cb').forEach(function (cb) { cb.checked = checked; });
+                if (mcpMasterLabel) mcpMasterLabel.textContent = checked
+                    ? (Bridge.lang('SkillsSelectNone') || 'Select None')
+                    : (Bridge.lang('PrereqSelectAll') || 'Select All');
+            });
+        }
 
         // Guide button
         var guideBtn = document.getElementById('mcp-guide-btn');
