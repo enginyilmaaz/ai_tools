@@ -223,7 +223,7 @@
   "PluginInstallSuccess": "Plugin installed successfully.",
   "PluginInstallFailed": "Plugin installation failed.",
   "PluginNeedsLogin": "Claude CLI Login Required",
-  "PluginNeedsLoginBody": "Open CMD or PowerShell, run 'claude /login' to sign in, then try again.",
+  "PluginNeedsLoginBody": "A terminal will open shortly with Claude. Complete the login steps, then try again.",
   "PluginRemoved": "Plugin removed.",
   "PluginAuthHint": "Run /mcp in Claude Code to authenticate after install",
   "PluginSuperpowersName": "Superpowers",

@@ -224,7 +224,7 @@
   "PluginInstallSuccess": "Eklenti ba\u015far\u0131yla kuruldu.",
   "PluginInstallFailed": "Eklenti kurulumu ba\u015far\u0131s\u0131z.",
   "PluginNeedsLogin": "Claude CLI Giri\u015f Gerekli",
-  "PluginNeedsLoginBody": "CMD veya PowerShell a\u00e7\u0131p 'claude /login' komutuyla giri\u015f yap\u0131n, sonra tekrar deneyin.",
+  "PluginNeedsLoginBody": "Birazdan a\u00e7\u0131lacak pencerede y\u00f6nergeleri tamamlay\u0131p giri\u015f yapt\u0131\u011f\u0131n\u0131zdan emin olun, sonra tekrar deneyin.",
   "PluginRemoved": "Eklenti kald\u0131r\u0131ld\u0131.",
   "PluginAuthHint": "Kurulumdan sonra Claude Code'da /mcp \u00e7al\u0131\u015ft\u0131rarak kimlik do\u011frulama yap\u0131n",
   "PluginSuperpowersName": "Superpowers",

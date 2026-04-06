@@ -1,5 +1,6 @@
 'use strict';
 
+const { execFile } = require('child_process');
 const { runShellCommand, runShellCommandVerbose, claudeCmd, checkInternet } = require('./platform/core/exec');
 
 function reply(sender, type, data) {
@@ -32,10 +33,20 @@ async function install(sender, data) {
   } else {
     const errMsg = result.error || result.output || 'Installation failed';
     reply(sender, 'log', { message: `[Plugin] ${id} FAILED — ${errMsg}` });
-    // If login required, show message (no terminal)
+    // If login required, open claude in terminal for login
     if (errMsg.includes('not found') || errMsg.includes('Not logged in') || errMsg.includes('/login')) {
-      reply(sender, 'log', { message: '[Plugin] Claude CLI login required. Open CMD or PowerShell, run "claude /login", then try again.' });
+      reply(sender, 'log', { message: '[Plugin] Claude CLI login required. A terminal will open shortly — complete the login steps in that window, then try again.' });
       reply(sender, 'pluginInstallResult', { id, success: false, message: errMsg, needsLogin: true });
+      // Open claude in terminal after 10 seconds
+      setTimeout(() => {
+        if (process.platform === 'win32') {
+          execFile('cmd.exe', ['/c', 'start', 'cmd', '/k', 'claude'], { windowsHide: false });
+        } else {
+          execFile('bash', ['-c',
+            'x-terminal-emulator -e "claude" 2>/dev/null || gnome-terminal -- claude 2>/dev/null || xterm -e "claude" 2>/dev/null'
+          ]);
+        }
+      }, 10000);
       return;
     }
   }
