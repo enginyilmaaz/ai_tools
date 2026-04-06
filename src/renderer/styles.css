@@ -1772,7 +1772,7 @@ body.subwindow-host #header-time {
     border: 1px solid var(--border-input);
     border-radius: 8px;
     padding: 0 10px;
-    height: 34px;
+    height: 38px;
     margin-bottom: 12px;
     transition: border-color 0.2s;
     flex-shrink: 0;
