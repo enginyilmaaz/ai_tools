@@ -13,10 +13,18 @@ async function checkNode() {
   const out = await runCommand(cmd.checkNode);
   if (out) return { found: true, version: out };
 
-  // Fallback: check NVM symlink dir directly
-  const nvmSymlink = process.env.NVM_SYMLINK || path.join(process.env.PROGRAMFILES || '', 'nodejs');
-  const nodeExe = path.join(nvmSymlink, 'node.exe');
-  if (fs.existsSync(nodeExe)) {
+  // Fallback: check NVM symlink dir directly (NVM4W uses C:\nvm4w\nodejs)
+  const nvmSymlinkCandidates = [
+    process.env.NVM_SYMLINK,
+    path.join(process.env.PROGRAMFILES || '', 'nodejs'),
+    'C:\\nvm4w\\nodejs'
+  ].filter(Boolean);
+  let nodeExe = null;
+  for (const dir of nvmSymlinkCandidates) {
+    const candidate = path.join(dir, 'node.exe');
+    if (fs.existsSync(candidate)) { nodeExe = candidate; break; }
+  }
+  if (nodeExe) {
     const ver = await runCommand(`"${nodeExe}" -v`);
     return { found: true, version: ver || 'installed' };
   }
@@ -47,9 +55,14 @@ async function checkGit() {
 }
 
 async function checkClaude() {
-  // Check file paths first (sync, instant) before expensive command calls
+  // Check file paths first (sync, instant)
   for (const candidate of paths.claudeCliPaths) {
-    if (fs.existsSync(candidate)) return { found: true, version: 'installed' };
+    if (fs.existsSync(candidate)) {
+      // Try to get version from the found binary
+      const ver = await runCommand(`"${candidate}" --version`);
+      const match = ver && ver.match(/(\d+\.\d+[\.\d]*)/);
+      return { found: true, version: match ? match[1] : 'installed' };
+    }
   }
   let out = await runCommand(cmd.checkClaude);
   if (!out) out = await runCommand('cmd /c claude -v');
@@ -67,31 +80,29 @@ async function checkVSCode() {
 }
 
 async function checkClaudeDesktop() {
-  // Check known file paths first (fastest, works right after install)
+  // Check via AppxPackage (Store/MSIX — most reliable on Windows)
+  const appxOut = await runShellCommand(
+    'powershell -NoProfile -Command "(Get-AppxPackage *claude* | Select -First 1).Version"', 8000
+  );
+  if (appxOut && appxOut.match(/\d+\.\d+/)) {
+    return { found: true, version: appxOut.trim() };
+  }
+
+  // Fallback: winget
+  const wingetOut = await runShellCommand('winget list --id Anthropic.Claude', 10000);
+  if (wingetOut && wingetOut.includes('Anthropic.Claude')) {
+    const match = wingetOut.match(/(\d+\.\d+[\.\d]*)/);
+    return { found: true, version: match ? match[1] : 'installed' };
+  }
+
+  // Fallback: known file paths (non-Store installs)
   const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
   const knownExePaths = [
     path.join(localAppData, 'AnthropicClaude', 'claude.exe'),
-    path.join(localAppData, 'Programs', 'claude', 'claude.exe'),
-    path.join(localAppData, 'AnthropicClaude', 'Update.exe')
+    path.join(localAppData, 'Programs', 'claude', 'claude.exe')
   ];
   for (const exePath of knownExePaths) {
     if (fs.existsSync(exePath)) return { found: true, version: 'installed' };
-  }
-
-  // Registry check
-  const registry = await runCommand(
-    'reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall" /s /f "Claude" /d',
-    10000
-  );
-  if (registry && (registry.includes('Claude') || registry.includes('Anthropic'))) {
-    return { found: true, version: 'installed' };
-  }
-
-  // winget check (slowest, may not be updated yet)
-  const out = await runShellCommand('winget list --id Anthropic.Claude', 10000);
-  if (out && out.includes('Anthropic.Claude')) {
-    const match = out.match(/(\d+\.\d+[\.\d]*)/);
-    return { found: true, version: match ? match[1] : 'installed' };
   }
 
   return { found: false, version: null };
@@ -341,9 +352,19 @@ async function checkCodexCli() {
 }
 
 async function checkCodexApp() {
+  // Check via AppxPackage (Store/MSIX — most reliable)
+  const appxOut = await runShellCommand(
+    'powershell -NoProfile -Command "(Get-AppxPackage *OpenAI.Codex* | Select -First 1).Version"', 8000
+  );
+  if (appxOut && appxOut.match(/\d+\.\d+/)) {
+    return { found: true, version: appxOut.trim() };
+  }
+
+  // Fallback: winget/msstore
   const out = await runShellCommand('winget list --id 9PLM9XGG6VKS --source msstore', 10000);
   if (out && out.includes('Codex')) {
-    return { found: true, version: 'installed' };
+    const match = out.match(/(\d+[\.\d]*)/);
+    return { found: true, version: match ? match[1] : 'installed' };
   }
   return { found: false, version: null };
 }
@@ -776,8 +797,9 @@ function injectKnownPaths() {
     path.join(process.env.PROGRAMFILES || '', 'GitHub CLI'),
     path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Microsoft VS Code', 'bin'),
     path.join(process.env.PROGRAMFILES || '', 'Microsoft VS Code', 'bin'),
-    // NVM symlink dir for node
-    path.join(process.env.NVM_SYMLINK || path.join(process.env.PROGRAMFILES || '', 'nodejs'))
+    // NVM symlink dir for node (standard + NVM4W)
+    process.env.NVM_SYMLINK || path.join(process.env.PROGRAMFILES || '', 'nodejs'),
+    'C:\\nvm4w\\nodejs'
   ].forEach(addToPath);
 }
 
