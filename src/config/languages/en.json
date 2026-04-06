@@ -221,6 +221,8 @@
   "PluginInstallingBtn": "Installing...",
   "PluginInstallSuccess": "Plugin installed successfully.",
   "PluginInstallFailed": "Plugin installation failed.",
+  "PluginNeedsLogin": "Claude CLI Login Required",
+  "PluginNeedsLoginBody": "A terminal window will open for login. Plugin install will retry in 10 seconds.",
   "PluginRemoved": "Plugin removed.",
   "PluginAuthHint": "Run /mcp in Claude Code to authenticate after install",
   "PluginSuperpowersName": "Superpowers",

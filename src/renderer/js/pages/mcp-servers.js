@@ -435,6 +435,12 @@ window.McpServersPage = {
     _onPluginInstallResult: function (d) {
         var item = this._getItem(d.id);
         var name = item ? this._L(item.nameKey) : d.id;
+        if (d.needsLogin) {
+            this._toast(this._L('PluginNeedsLogin') || 'Claude CLI Login Required',
+                this._L('PluginNeedsLoginBody') || 'A terminal window will open for login. Plugin install will retry automatically.',
+                'warning', 10000);
+            return;
+        }
         if (d.success) {
             this._pluginInstalledMap[d.id] = true;
             var msg = name + ' — ' + this._L('PluginInstallSuccess');
