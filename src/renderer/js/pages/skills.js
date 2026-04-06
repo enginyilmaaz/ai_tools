@@ -557,7 +557,7 @@ window.SkillsPage = {
                 '<div style="display:flex;justify-content:flex-end;padding:8px 0 30px">' +
                     '<div class="split-btn-group" id="skills-split-group">' +
                         '<button class="btn btn-primary split-btn-main skills-target-btn" id="skills-install-claude-btn">' +
-                            '<span class="mi btn-icon">download</span> ' +
+                            '<img src="assets/devtools/claude.svg" style="width:16px;height:16px;filter:brightness(0) invert(1)" alt=""> ' +
                             (Bridge.lang('SkillsAddSelectedToClaude') || 'Add Selected to Claude') +
                         '</button>' +
                         '<button id="skills-split-toggle" class="btn btn-primary split-btn-toggle">' +
@@ -565,8 +565,8 @@ window.SkillsPage = {
                         '</button>' +
                         '<div id="skills-split-menu" class="split-btn-menu">' +
                             '<button class="split-btn-menu-item" id="skills-remove-selected-btn">' +
-                                '<span class="mi">delete_outline</span> ' +
-                                '<span>' + (Bridge.lang('SkillsRemoveSelected') || 'Remove Selected') + '</span>' +
+                                '<img src="assets/devtools/claude.svg" style="width:14px;height:14px;margin-right:4px" alt=""> ' +
+                                '<span>' + (Bridge.lang('SkillsRemoveSelectedFromClaude') || 'Remove Selected from Claude') + '</span>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
