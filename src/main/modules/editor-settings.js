@@ -36,6 +36,19 @@ function getSettingsPaths() {
 }
 
 function editorInstalled(editor) {
+  if (editor === 'vscode') {
+    // Check known paths first (faster, no PATH dependency)
+    const knownPaths = process.platform === 'win32' ? [
+      path.join(process.env.PROGRAMFILES || '', 'Microsoft VS Code', 'bin', 'code.cmd'),
+      path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Microsoft VS Code', 'bin', 'code.cmd')
+    ] : [
+      '/usr/bin/code', '/usr/share/code/bin/code', '/snap/bin/code'
+    ];
+    for (const p of knownPaths) {
+      if (fs.existsSync(p)) return true;
+    }
+  }
+  // Fallback: which/where
   const { execFileSync } = require('child_process');
   const binary = editor === 'vscode' ? 'code' : editor;
   try {
