@@ -45,7 +45,7 @@ window.McpServersPage = {
             '</div>' +
             '<div class="mcp-page-scroll">' +
                 '<p class="mcp-desc" style="margin-bottom:8px">' + (L('McpDescription') || '') + '</p>' +
-                '<div style="display:flex;align-items:center;margin-bottom:8px">' +
+                '<div style="display:flex;align-items:center;margin-bottom:8px;padding-left:8px">' +
                     '<label class="skills-master-toggle" id="mcp-select-all" style="cursor:pointer">' +
                         '<span class="skills-row-check">' +
                             '<input id="mcp-master-toggle" type="checkbox" checked>' +
