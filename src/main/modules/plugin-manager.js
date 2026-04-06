@@ -1,28 +1,9 @@
 'use strict';
 
-const { execFile } = require('child_process');
 const { runShellCommand, runShellCommandVerbose, claudeCmd, checkInternet } = require('./platform/core/exec');
 
 function reply(sender, type, data) {
   sender.send('bridge-reply', { type, data });
-}
-
-async function isClaudeLoggedIn() {
-  const out = await runShellCommand(claudeCmd('config list'), 10000);
-  if (!out) return false;
-  return !out.includes('Not logged in') && !out.includes('/login');
-}
-
-function openTerminalWithLogin() {
-  // Open a native terminal window with claude login command
-  if (process.platform === 'win32') {
-    execFile('cmd.exe', ['/c', 'start', 'cmd', '/k', 'echo Claude login required && echo. && claude /login'], { windowsHide: false });
-  } else {
-    execFile('bash', ['-c',
-      'x-terminal-emulator -e "bash -c \'echo Claude login required && claude /login && read\'" 2>/dev/null || ' +
-      'gnome-terminal -- bash -c "echo Claude login required && claude /login && read" 2>/dev/null'
-    ]);
-  }
 }
 
 async function install(sender, data) {
@@ -51,11 +32,10 @@ async function install(sender, data) {
   } else {
     const errMsg = result.error || result.output || 'Installation failed';
     reply(sender, 'log', { message: `[Plugin] ${id} FAILED — ${errMsg}` });
-    // If login required, open terminal once
+    // If login required, show message (no terminal)
     if (errMsg.includes('not found') || errMsg.includes('Not logged in') || errMsg.includes('/login')) {
-      reply(sender, 'log', { message: '[Plugin] Claude CLI login may be required — opening terminal...' });
+      reply(sender, 'log', { message: '[Plugin] Claude CLI login required. Open CMD or PowerShell, run "claude /login", then try again.' });
       reply(sender, 'pluginInstallResult', { id, success: false, message: errMsg, needsLogin: true });
-      openTerminalWithLogin();
       return;
     }
   }
