@@ -60,15 +60,15 @@ window.McpServersPage = {
                 '<div style="display:flex;justify-content:flex-end;padding:8px 0 4px">' +
                     '<div class="split-btn-group" id="mcp-split-group">' +
                         '<button id="mcp-install-all-btn" class="btn btn-primary split-btn-main">' +
-                            '<span class="mi btn-icon">download</span> ' + (L('McpInstallAll') || 'Install All') +
+                            '<span class="mi btn-icon">download</span> ' + (L('McpInstallSelected') || 'Install Selected') +
                         '</button>' +
                         '<button id="mcp-split-toggle" class="btn btn-primary split-btn-toggle">' +
                             '<span class="mi">arrow_drop_down</span>' +
                         '</button>' +
                         '<div id="mcp-split-menu" class="split-btn-menu">' +
                             '<button id="mcp-remove-all-btn" class="split-btn-menu-item">' +
-                                '<span class="mi">delete_sweep</span> ' +
-                                '<span>' + (L('McpRemoveAll') || 'Remove All') + '</span>' +
+                                '<span class="mi">delete_outline</span> ' +
+                                '<span>' + (L('McpRemoveSelected') || 'Remove Selected') + '</span>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
@@ -364,6 +364,7 @@ window.McpServersPage = {
 
             var tooltipText = L(item.descKey) + '\n' + (L('McpGuideTooltip') || 'See the Guide for details.');
             row.innerHTML =
+                '<input type="checkbox" class="mcp-row-cb" data-mcp-id="' + item.id + '" data-mcp-type="' + item.type + '"' + (installed ? '' : ' checked') + '>' +
                 '<img class="mcp-server-icon' + (item.id === 'github' ? ' mcp-server-icon-invert-dark' : '') + '" src="' + item.icon + '" alt="">' +
                 '<div class="mcp-server-info" title="' + tooltipText.replace(/"/g, '&quot;') + '"><div class="mcp-server-name">' + L(item.nameKey) + '</div>' + typeBadge + '</div>' +
                 '<div class="mcp-server-actions">' + actionsHtml + '</div>';
@@ -608,14 +609,24 @@ window.McpServersPage = {
     },
 
     // ── Install All / Remove All ──
+    _getSelectedIds: function () {
+        var ids = [];
+        document.querySelectorAll('.mcp-row-cb:checked').forEach(function (cb) {
+            ids.push({ id: cb.getAttribute('data-mcp-id'), type: cb.getAttribute('data-mcp-type') });
+        });
+        return ids;
+    },
+
     _installAll: function () {
         var self = this;
         var L = this._L;
         var btn = document.getElementById('mcp-install-all-btn');
-        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="mi btn-icon" style="animation:spin 1s linear infinite">hourglass_empty</span> ' + L('McpInstallAllRunning'); }
-
+        var selected = this._getSelectedIds();
         var queue = [];
-        this._allIntegrations.forEach(function (item) {
+
+        selected.forEach(function (sel) {
+            var item = self._getItem(sel.id);
+            if (!item) return;
             var installed = item.type === 'plugin' ? self._pluginInstalledMap[item.id] : self._mcpInstalledMap[item.id];
             if (!installed && !(item.fields && item.fields.length > 0)) {
                 queue.push(item);
@@ -623,16 +634,17 @@ window.McpServersPage = {
         });
 
         if (queue.length === 0) {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<span class="mi btn-icon">download</span> ' + L('McpInstallAll'); }
-            this._toast(L('CommonInfo'), L('McpInstalledBtn'), 'info');
+            this._toast(L('CommonInfo'), L('McpInstalledBtn') || 'Nothing to install', 'info');
             return;
         }
+
+        if (btn) { btn.disabled = true; btn.textContent = L('McpInstallAllRunning') || 'Installing...'; }
 
         var idx = 0;
         function next() {
             if (idx >= queue.length) {
                 self._installAllNext = null;
-                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="mi btn-icon">download</span> ' + L('McpInstallAll'); }
+                if (btn) { btn.disabled = false; btn.textContent = L('McpInstallSelected') || 'Install Selected'; }
                 return;
             }
             var item = queue[idx++];
@@ -645,34 +657,37 @@ window.McpServersPage = {
     _removeAll: function () {
         var self = this;
         var L = this._L;
+        var selected = this._getSelectedIds();
 
-        var installed = [];
-        this._allIntegrations.forEach(function (item) {
+        var toRemove = [];
+        selected.forEach(function (sel) {
+            var item = self._getItem(sel.id);
+            if (!item) return;
             var isInstalled = item.type === 'plugin' ? self._pluginInstalledMap[item.id] : self._mcpInstalledMap[item.id];
-            if (isInstalled) installed.push(item);
+            if (isInstalled) toRemove.push(item);
         });
 
-        if (installed.length === 0) {
-            this._toast(L('CommonInfo'), '', 'info');
+        if (toRemove.length === 0) {
+            this._toast(L('CommonInfo'), 'Nothing selected to remove', 'info');
             return;
         }
 
-        var listHtml = installed.map(function (i) {
+        var listHtml = toRemove.map(function (i) {
             return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><img src="' + i.icon + '" style="width:20px;height:20px;border-radius:4px" alt=""><span>' + L(i.nameKey) + '</span></div>';
         }).join('');
-        this._confirm(L('McpRemove'), listHtml + '<p style="margin-top:12px">' + (L('McpRemoveAllConfirm') || 'Remove all installed integrations?') + '</p>', function (yes) {
+        this._confirm(L('McpRemove'), listHtml + '<p style="margin-top:12px">' + (L('McpRemoveSelected') || 'Remove selected integrations?') + '</p>', function (yes) {
             if (!yes) return;
             var btn = document.getElementById('mcp-remove-all-btn');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="mi btn-icon" style="animation:spin 1s linear infinite">hourglass_empty</span> ' + L('McpRemoving'); }
+            if (btn) { btn.disabled = true; }
 
             var idx = 0;
             function next() {
-                if (idx >= installed.length) {
+                if (idx >= toRemove.length) {
                     self._removeAllNext = null;
-                    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="mi btn-icon">delete_sweep</span> ' + (L('McpRemoveAll') || 'Remove All'); }
+                    if (btn) { btn.disabled = false; }
                     return;
                 }
-                var item = installed[idx++];
+                var item = toRemove[idx++];
                 Bridge.send(item.type === 'plugin' ? 'removePlugin' : 'removeMcp', { id: item.id });
             }
             self._removeAllNext = next;

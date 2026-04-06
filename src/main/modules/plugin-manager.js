@@ -35,22 +35,6 @@ async function install(sender, data) {
     return reply(sender, 'pluginInstallResult', { id, success: false, message: 'No internet connection' });
   }
 
-  // Check if Claude CLI is logged in
-  if (!(await isClaudeLoggedIn())) {
-    reply(sender, 'log', { message: '[Plugin] Claude CLI is not logged in — opening login terminal...' });
-    reply(sender, 'pluginInstallResult', {
-      id, success: false, message: 'Claude CLI not logged in',
-      needsLogin: true
-    });
-    openTerminalWithLogin();
-    // Retry after 10 seconds
-    setTimeout(() => {
-      reply(sender, 'log', { message: '[Plugin] Retrying plugin install after login...' });
-      install(sender, data);
-    }, 10000);
-    return;
-  }
-
   // If already installed, skip
   if (await isPluginInstalled(id)) {
     reply(sender, 'log', { message: `[Plugin] ${id} already installed` });
@@ -67,7 +51,13 @@ async function install(sender, data) {
   } else {
     const errMsg = result.error || result.output || 'Installation failed';
     reply(sender, 'log', { message: `[Plugin] ${id} FAILED — ${errMsg}` });
-    if (result.command) reply(sender, 'log', { message: `[Plugin] Command used: ${result.command}` });
+    // If login required, open terminal once
+    if (errMsg.includes('not found') || errMsg.includes('Not logged in') || errMsg.includes('/login')) {
+      reply(sender, 'log', { message: '[Plugin] Claude CLI login may be required — opening terminal...' });
+      reply(sender, 'pluginInstallResult', { id, success: false, message: errMsg, needsLogin: true });
+      openTerminalWithLogin();
+      return;
+    }
   }
   reply(sender, 'pluginInstallResult', {
     id,

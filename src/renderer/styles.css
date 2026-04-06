@@ -3706,3 +3706,12 @@ body.subwindow-host.best-practices-page-active .bp-main-scroll {
 .hidden {
     display: none !important;
 }
+
+/* MCP row checkbox */
+.mcp-row-cb {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--accent-blue);
+    cursor: pointer;
+    flex-shrink: 0;
+}
