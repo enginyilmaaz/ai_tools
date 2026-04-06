@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="preload" href="fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/MaterialIconsRound.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="subwindow-host" style="background:transparent">
+    <div id="loading-overlay" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg-body);border-radius:8px">
+        <div style="text-align:center">
+            <img src="assets/header-dark.png" alt="" style="height:38px;margin-bottom:18px;opacity:.85">
+            <div style="width:28px;height:28px;margin:0 auto;border:3px solid #2d2e48;border-top-color:#5b9aff;border-radius:50%;animation:sp .7s linear infinite"></div>
+        </div>
+        <style>@keyframes sp{to{transform:rotate(360deg)}}</style>
+    </div>
+    <div id="app">
+        <header id="header" class="titlebar-drag">
+            <div class="toolbar-left titlebar-nodrag">
+                <div class="header-brand">
+                    <img src="assets/header-light.png" class="header-app-icon" data-theme-light-src="assets/header-light.png" data-theme-dark-src="assets/header-dark.png" alt="">
+                </div>
+            </div>
+            <div class="toolbar-center">
+                <span class="header-title" id="header-title"></span>
+            </div>
+            <div class="toolbar-right titlebar-nodrag">
+                <button id="btn-win-minimize" class="toolbar-btn win-ctrl-btn" title="Minimize">
+                    <span class="mi">remove</span>
+                </button>
+                <button id="btn-win-maximize" class="toolbar-btn win-ctrl-btn" title="Maximize">
+                    <span class="mi">crop_square</span>
+                </button>
+                <button id="btn-win-close" class="toolbar-btn win-ctrl-btn win-close-btn" title="Close">
+                    <span class="mi">close</span>
+                </button>
+            </div>
+        </header>
+
+        <div id="page-container"></div>
+    </div>
+
+    <script src="js/bridge.js" defer></script>
+    <script src="js/subwindow.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Claude Code Best Practice Rehberi</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --primary: #D97706;
+    --primary-light: #FEF3C7;
+    --accent: #1E40AF;
+    --accent-light: #DBEAFE;
+    --danger: #DC2626;
+    --danger-light: #FEE2E2;
+    --success: #059669;
+    --success-light: #D1FAE5;
+    --gray-50: #F9FAFB;
+    --gray-100: #F3F4F6;
+    --gray-200: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-500: #6B7280;
+    --gray-700: #374151;
+    --gray-800: #1F2937;
+    --gray-900: #111827;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.45;
+    color: var(--gray-800);
+    background: #fff;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 10mm 14mm;
+  }
+
+  /* Cover */
+  .cover {
+    text-align: center;
+    padding: 20px 0 16px;
+    border-bottom: 3px solid var(--primary);
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: var(--gray-900);
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .cover .subtitle {
+    font-size: 11pt;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .cover .meta {
+    font-size: 8.5pt;
+    color: var(--gray-500);
+    line-height: 1.6;
+  }
+  .cover .version-badge {
+    display: inline-block;
+    background: var(--primary);
+    color: #fff;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 8pt;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+
+  /* TOC */
+  .toc {
+    padding-bottom: 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .toc h2 {
+    font-size: 13pt;
+    color: var(--gray-900);
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 2px 0;
+    border-bottom: 1px dotted var(--gray-300);
+  }
+  .toc-item.section {
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-top: 4px;
+    border-bottom: none;
+  }
+  .toc-item.sub { padding-left: 20px; font-size: 8.5pt; }
+
+  /* Sections */
+  h2 {
+    font-size: 13pt;
+    font-weight: 800;
+    color: var(--gray-900);
+    border-bottom: 3px solid var(--primary);
+    padding-bottom: 3px;
+    margin: 16px 0 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 12px 0 5px;
+    page-break-after: avoid;
+  }
+  h4 {
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin: 8px 0 3px;
+  }
+  p { margin-bottom: 5px; }
+
+  /* Code */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    background: var(--gray-100);
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: var(--danger);
+  }
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5pt;
+    background: var(--gray-900);
+    color: #E5E7EB;
+    padding: 8px 10px;
+    border-radius: 5px;
+    margin: 5px 0 8px;
+    overflow-x: auto;
+    line-height: 1.45;
+    page-break-inside: avoid;
+  }
+  pre .comment { color: #6B7280; }
+  pre .keyword { color: #F59E0B; }
+  pre .string { color: #34D399; }
+  pre .field { color: #60A5FA; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5px 0 10px;
+    font-size: 8.5pt;
+    page-break-inside: avoid;
+  }
+  th {
+    background: var(--gray-800);
+    color: #fff;
+    font-weight: 600;
+    text-align: left;
+    padding: 4px 7px;
+  }
+  td {
+    padding: 3px 7px;
+    border-bottom: 1px solid var(--gray-200);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: var(--gray-50); }
+
+  /* Boxes */
+  .box {
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin: 8px 0;
+    page-break-inside: avoid;
+  }
+  .box-title {
+    font-weight: 700;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+  .box-warn { background: var(--primary-light); border-left: 4px solid var(--primary); }
+  .box-warn .box-title { color: var(--primary); }
+  .box-info { background: var(--accent-light); border-left: 4px solid var(--accent); }
+  .box-info .box-title { color: var(--accent); }
+  .box-danger { background: var(--danger-light); border-left: 4px solid var(--danger); }
+  .box-danger .box-title { color: var(--danger); }
+  .box-success { background: var(--success-light); border-left: 4px solid var(--success); }
+  .box-success .box-title { color: var(--success); }
+
+  /* Decision Flow */
+  .flow {
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    line-height: 1.7;
+    page-break-inside: avoid;
+  }
+  .flow .yes { color: var(--success); font-weight: 700; }
+  .flow .no { color: var(--danger); font-weight: 700; }
+  .flow .result { color: var(--accent); font-weight: 600; }
+
+  /* Hierarchy */
+  .hierarchy {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+    page-break-inside: avoid;
+  }
+  .hierarchy-item {
+    flex: 1;
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+  }
+  .hierarchy-item.h1 { background: var(--primary-light); border: 2px solid var(--primary); }
+  .hierarchy-item.h2 { background: var(--accent-light); border: 2px solid var(--accent); }
+  .hierarchy-item.h3 { background: var(--success-light); border: 2px solid var(--success); }
+  .hierarchy-item .pct { font-size: 16pt; font-weight: 800; }
+  .hierarchy-item .label { font-size: 8pt; font-weight: 600; margin-top: 2px; }
+  .hierarchy-item .desc { font-size: 7pt; color: var(--gray-500); margin-top: 1px; }
+
+  .arrow { font-size: 12pt; color: var(--gray-400); align-self: center; }
+
+  /* File tree */
+  .tree {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5pt;
+    line-height: 1.6;
+    margin: 5px 0 8px;
+    page-break-inside: avoid;
+  }
+  .tree .dir { color: var(--accent); font-weight: 600; }
+  .tree .file { color: var(--gray-700); }
+  .tree .note { color: var(--gray-500); font-style: italic; }
+
+  /* Lists */
+  ul, ol { margin: 4px 0 6px 18px; }
+  li { margin-bottom: 2px; }
+
+  /* Page breaks */
+  .page-break { }
+
+  /* Footer */
+  .doc-footer {
+    margin-top: 20px;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-200);
+    text-align: center;
+    font-size: 7pt;
+    color: var(--gray-500);
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm 12mm 14mm 12mm;
+    @top-center {
+      content: "Claude Code Best Practice Guide";
+      font-family: 'Inter', sans-serif;
+      font-size: 7.5pt;
+      color: #9CA3AF;
+      border-bottom: 0.5px solid #E5E7EB;
+      padding-bottom: 4px;
+    }
+    @bottom-center {
+      content: counter(page);
+      font-family: 'Inter', sans-serif;
+      font-size: 7.5pt;
+      color: #9CA3AF;
+    }
+  }
+  @page :first {
+    @top-center { content: none; }
+    @bottom-center { content: none; }
+  }
+  @media print {
+    body { padding: 0; font-size: 9pt; }
+    .cover { padding: 14px 0 10px; }
+    pre { font-size: 7pt; }
+    h2 { margin-top: 12px; }
+    .page-break { }
+  }
+
+  .toc-item a { text-decoration: none; color: inherit; display: flex; width: 100%; justify-content: space-between; }
+  .toc-item a:hover { color: var(--primary); }
+  @media print { a { text-decoration: none !important; color: inherit !important; } }
+</style>
+</head>
+<body>
+<!-- ==================== KAPAK ==================== -->
+<div class="cover">
+<h1>Claude Code<br/>Best Practice Rehberi</h1>
+<div class="subtitle">Command · Skill · Agent · Orchestration</div>
+<div class="meta">
+    Kaynak: github.com/shanraisshan/claude-code-best-practice<br/>
+    Boris Cherny, Thariq Shihipar ve Claude Code Ekibi tavsiyeleri<br/>
+    Anthropic Resmi Dokümantasyonu baz alınarak derlenmiştir
+  </div>
+<div class="version-badge">Mart 2026 · v2.1+</div>
+</div>
+<!-- ==================== İÇİNDEKİLER ==================== -->
+<div class="toc">
+<h2 id="i-indekiler">İçindekiler</h2>
+<div class="toc-item section"><a href="#section-1-" style="text-decoration: none; color: inherit;">1. Temel Kavramlar</a></div>
+<div class="toc-item sub"><a href="#section-1-1" style="text-decoration: none; color: inherit;">1.1 Command (Komut)</a></div>
+<div class="toc-item sub"><a href="#section-1-2" style="text-decoration: none; color: inherit;">1.2 Skill</a></div>
+<div class="toc-item sub"><a href="#section-1-3" style="text-decoration: none; color: inherit;">1.3 Agent (Alt Ajan)</a></div>
+<div class="toc-item sub"><a href="#section-1-4" style="text-decoration: none; color: inherit;">1.4 Karşılaştırma Tablosu</a></div>
+<div class="toc-item section"><a href="#section-2-" style="text-decoration: none; color: inherit;">2. Hiyerarşi ve Karar Akışı</a></div>
+<div class="toc-item sub"><a href="#section-2-1" style="text-decoration: none; color: inherit;">2.1 Günlük Kullanım Dağılımı</a></div>
+<div class="toc-item sub"><a href="#section-2-2" style="text-decoration: none; color: inherit;">2.2 Karar Ağacı</a></div>
+<div class="toc-item section"><a href="#section-3-" style="text-decoration: none; color: inherit;">3. Orchestration Workflow</a></div>
+<div class="toc-item sub"><a href="#section-3-1" style="text-decoration: none; color: inherit;">3.1 Command → Agent → Skill Pattern</a></div>
+<div class="toc-item sub"><a href="#section-3-2" style="text-decoration: none; color: inherit;">3.2 Çalışan Örnek</a></div>
+<div class="toc-item section"><a href="#section-4-" style="text-decoration: none; color: inherit;">4. Memory (CLAUDE.md) Yönetimi</a></div>
+<div class="toc-item sub"><a href="#section-4-1" style="text-decoration: none; color: inherit;">4.1 Yükleme Mekanizması</a></div>
+<div class="toc-item sub"><a href="#section-4-2" style="text-decoration: none; color: inherit;">4.2 Monorepo Stratejisi</a></div>
+<div class="toc-item section"><a href="#section-5-" style="text-decoration: none; color: inherit;">5. MCP Server Konfigürasyonu</a></div>
+<div class="toc-item section"><a href="#section-6-" style="text-decoration: none; color: inherit;">6. Settings ve Konfigürasyon</a></div>
+<div class="toc-item section"><a href="#section-7-" style="text-decoration: none; color: inherit;">7. Hooks (Kancalar)</a></div>
+<div class="toc-item section"><a href="#section-8-" style="text-decoration: none; color: inherit;">8. Agent Memory (Kalıcı Hafıza)</a></div>
+<div class="toc-item section"><a href="#section-9-" style="text-decoration: none; color: inherit;">9. Altın Kurallar ve İpuçları</a></div>
+<div class="toc-item sub"><a href="#section-9-1" style="text-decoration: none; color: inherit;">9.1 Workflow İpuçları</a></div>
+<div class="toc-item sub"><a href="#section-9-2" style="text-decoration: none; color: inherit;">9.2 Context Yönetimi</a></div>
+<div class="toc-item sub"><a href="#section-9-3" style="text-decoration: none; color: inherit;">9.3 Debugging</a></div>
+<div class="toc-item sub"><a href="#section-9-4" style="text-decoration: none; color: inherit;">9.4 Araçlar ve Yardımcılar</a></div>
+<div class="toc-item section"><a href="#section-10-" style="text-decoration: none; color: inherit;">10. Yapılması ve Yapılmaması Gerekenler</a></div>
+</div>
+<!-- ==================== BÖLÜM 1 ==================== -->
+<h2 id="section-1-">1. Temel Kavramlar</h2>
+<p>Claude Code CLI üç temel yapı taşı üzerine kuruludur. Her birinin farklı bir görevi, çalışma şekli ve context maliyeti vardır.</p>
+<h3 id="section-1-1">1.1 Command (Komut)</h3>
+<p><strong>Tanım:</strong> Kullanıcının <code>/komut-adi</code> yazarak tetiklediği giriş noktası prompt şablonları. Mevcut context'e enjekte olur, yeni izole context açmaz.</p>
+<p><strong>Konum:</strong> <code>.claude/commands/&lt;isim&gt;.md</code></p>
+<h4>Frontmatter Alanları</h4>
+<table>
+<tr><th>Alan</th><th>Tip</th><th>Zorunlu</th><th>Açıklama</th></tr>
+<tr><td><code>description</code></td><td>string</td><td>Önerilen</td><td>Komutun açıklaması. Autocomplete'de görünür</td></tr>
+<tr><td><code>argument-hint</code></td><td>string</td><td>Hayır</td><td>Argüman ipucu (ör: <code>[dosya-adi]</code>)</td></tr>
+<tr><td><code>allowed-tools</code></td><td>string</td><td>Hayır</td><td>İzin istemeden kullanılacak araçlar</td></tr>
+<tr><td><code>model</code></td><td>string</td><td>Hayır</td><td>Kullanılacak model: <code>haiku</code>, <code>sonnet</code>, <code>opus</code></td></tr>
+</table>
+<h4>Dinamik Değişkenler</h4>
+<table>
+<tr><th>Değişken</th><th>Açıklama</th></tr>
+<tr><td><code>$ARGUMENTS</code></td><td>Komuta geçilen tüm argümanlar</td></tr>
+<tr><td><code>$0</code>, <code>$1</code>, <code>$2</code></td><td>0-indexed argüman erişimi</td></tr>
+<tr><td><code>${CLAUDE_SESSION_ID}</code></td><td>Aktif oturum kimliği</td></tr>
+<tr><td><code>!`shell-komutu`</code></td><td>Shell çıktısını prompt'a enjekte eder (çalışma anında)</td></tr>
+</table>
+<h4>Örnek: Basit Komut</h4>
+<pre><span class="comment">---</span>
+<span class="field">description</span>: Firmware'i derle ve test et
+<span class="field">model</span>: haiku
+<span class="comment">---</span>
+
+Projedeki firmware'i derle ve birim testleri çalıştır.
+Sonuçları özetle.</pre>
+<h4>Örnek: Tam Donanımlı Komut</h4>
+<pre><span class="comment">---</span>
+<span class="field">description</span>: GitHub issue'yu numarasıyla çöz
+<span class="field">argument-hint</span>: [issue-numarasi]
+<span class="field">allowed-tools</span>: Read, Edit, Write, Bash(gh *), Bash(npm test *)
+<span class="field">model</span>: sonnet
+<span class="comment">---</span>
+
+GitHub issue <span class="keyword">$0</span>'ı kodlama standartlarımıza göre çöz.
+
+<span class="comment">## Bağlam</span>
+- PR diff: <span class="string">!`gh pr diff`</span>
+- Issue detayı: <span class="string">!`gh issue view $0`</span>
+
+<span class="comment">## Adımlar</span>
+1. Issue açıklamasını oku
+2. Gereksinimleri anla
+3. Düzeltmeyi uygula
+4. Testleri yaz
+5. Commit oluştur
+
+Oturum: <span class="keyword">${CLAUDE_SESSION_ID}</span></pre>
+<h4>Öncelik Sırası</h4>
+<table>
+<tr><th>Konum</th><th>Kapsam</th><th>Öncelik</th></tr>
+<tr><td><code>.claude/commands/</code></td><td>Sadece bu proje</td><td>1 (En yüksek)</td></tr>
+<tr><td><code>~/.claude/commands/</code></td><td>Tüm projeler</td><td>2</td></tr>
+<tr><td><code>&lt;plugin&gt;/commands/</code></td><td>Plugin etkinse</td><td>3 (En düşük)</td></tr>
+</table>
+<!-- ============ SKILL ============ -->
+<h3 class="page-break" id="section-1-2">1.2 Skill</h3>
+<p><strong>Tanım:</strong> Yeniden kullanılabilir bilgi paketleri ve iş akışları. Mevcut context'e enjekte olur. İhtiyaç duyulduğunda yüklenir (progressive disclosure).</p>
+<p><strong>Konum:</strong> <code>.claude/skills/&lt;isim&gt;/SKILL.md</code></p>
+<h4>Frontmatter Alanları</h4>
+<table>
+<tr><th>Alan</th><th>Açıklama</th></tr>
+<tr><td><code>name</code></td><td>Görünen ad ve /slash-command tanımlayıcı. Yazılmazsa dizin adı kullanılır</td></tr>
+<tr><td><code>description</code></td><td>Ne yaptığı. Autocomplete ve auto-discovery için</td></tr>
+<tr><td><code>user-invocable</code></td><td><code>false</code> yapılırsa / menüsünden gizlenir — sadece agent preloading için</td></tr>
+<tr><td><code>allowed-tools</code></td><td>Skill aktifken izin istemeden kullanılacak araçlar</td></tr>
+</table>
+<h4>İki Farklı Skill Pattern'i</h4>
+<div class="box box-info">
+<div class="box-title">Pattern 1: Agent Skill (Preloaded)</div>
+  Agent'ın <code>skills:</code> alanında tanımlanır. Agent başlarken context'e otomatik enjekte olur. Agent'ın "bildiği şeyler" kategorisindedir.
+</div>
+<div class="box box-success">
+<div class="box-title">Pattern 2: Standalone Skill (On-Demand)</div>
+<code>/skill-adi</code> yazarak veya <code>Skill()</code> tool'u ile çağrılır. Bağımsız çalışır, hiçbir agent'a bağlı değildir. İhtiyaç olduğunda yüklenir.
+</div>
+<h4>Örnek: Standalone Skill</h4>
+<pre><span class="comment">---</span>
+<span class="field">name</span>: svg-card-creator
+<span class="field">description</span>: &gt;
+  Veri ile SVG görsel kart oluşturur. Rapor veya
+  dashboard çıktısı gerektiğinde kullan.
+<span class="field">user-invocable</span>: true
+<span class="comment">---</span>
+
+<span class="comment"># SVG Kart Oluşturucu</span>
+
+<span class="comment">## Kurallar</span>
+- Boyut: 800x400px, viewBox kullan
+- Font: sistem fontu, embed etme
+- Renkler: CSS değişkeni ile tanımla
+- Çıktı: output/ dizinine yaz
+
+<span class="comment">## Şablon Yapısı</span>
+- Başlık: üst 60px, koyu arka plan
+- İçerik: orta alan, grid düzeni
+- Alt bilgi: tarih ve versiyon</pre>
+<h4>Örnek: Agent Skill (Preloaded — Gizli)</h4>
+<pre><span class="comment">---</span>
+<span class="field">name</span>: api-conventions
+<span class="field">description</span>: API endpoint yazım kuralları
+<span class="field">user-invocable</span>: <span class="keyword">false</span>
+<span class="comment">---</span>
+
+<span class="comment"># API Kuralları</span>
+- REST endpoint: /api/v1/{resource}
+- Hata formatı: { error: { code, message } }
+- Pagination: cursor-based
+- Auth: Bearer token header'da</pre>
+<!-- ============ AGENT ============ -->
+<h3 id="section-1-3">1.3 Agent (Alt Ajan)</h3>
+<p><strong>Tanım:</strong> Kendi izole context'inde çalışan otonom aktör. Kendine özel araçlar, izinler, model, hafıza ve kimlik sahibidir.</p>
+<p><strong>Konum:</strong> <code>.claude/agents/&lt;isim&gt;.md</code></p>
+<h4>Frontmatter Alanları</h4>
+<table>
+<tr><th>Alan</th><th>Tip</th><th>Açıklama</th></tr>
+<tr><td><code>name</code></td><td>string</td><td>Görünen ad</td></tr>
+<tr><td><code>description</code></td><td>string</td><td>Ne zaman çağrılacağı. <code>"PROACTIVELY"</code> yazılırsa Claude otomatik çağırır</td></tr>
+<tr><td><code>tools</code></td><td>string</td><td>İzin verilen araçlar: <code>Read, Write, Edit, Bash</code>. Yazılmazsa tümü inherit</td></tr>
+<tr><td><code>disallowedTools</code></td><td>string</td><td>Yasaklı araçlar</td></tr>
+<tr><td><code>model</code></td><td>string</td><td><code>haiku</code>, <code>sonnet</code>, <code>opus</code>, <code>inherit</code></td></tr>
+<tr><td><code>permissionMode</code></td><td>string</td><td><code>acceptEdits</code>, <code>plan</code>, <code>bypassPermissions</code></td></tr>
+<tr><td><code>maxTurns</code></td><td>int</td><td>Maksimum tur sayısı</td></tr>
+<tr><td><code>skills</code></td><td>list</td><td>Başlangıçta preload edilecek skill'ler</td></tr>
+<tr><td><code>mcpServers</code></td><td>list</td><td>Agent'a özel MCP server'lar</td></tr>
+<tr><td><code>hooks</code></td><td>object</td><td>Lifecycle hook'ları (PreToolUse, PostToolUse, Stop)</td></tr>
+<tr><td><code>memory</code></td><td>string</td><td>Kalıcı hafıza: <code>user</code>, <code>project</code>, <code>local</code></td></tr>
+<tr><td><code>background</code></td><td>bool</td><td><code>true</code> → arka planda çalışır</td></tr>
+<tr><td><code>color</code></td><td>string</td><td>CLI çıktı rengi (<code>green</code>, <code>magenta</code> vb.)</td></tr>
+</table>
+<h4>Örnek: Code Reviewer Agent</h4>
+<pre><span class="comment">---</span>
+<span class="field">name</span>: code-reviewer
+<span class="field">description</span>: &gt;
+  Kod yazıldıktan sonra kalite, güvenlik ve bakım
+  standartlarını kontrol eder. PROACTIVELY çağrılabilir.
+<span class="field">tools</span>: Read, Write, Edit, Bash
+<span class="field">model</span>: sonnet
+<span class="field">memory</span>: user
+<span class="field">color</span>: green
+<span class="comment">---</span>
+
+Sen bir kod incelemecisisin. Kodu incelerken keşfettiğin
+pattern'leri, kuralları ve tekrarlayan sorunları
+agent hafızana kaydet.
+
+<span class="comment">## İnceleme Kontrol Listesi</span>
+1. <span class="keyword">Güvenlik:</span> Hardcoded secret, injection, XSS
+2. <span class="keyword">Performans:</span> N+1 query, gereksiz hesaplama
+3. <span class="keyword">Test:</span> Yeterli kapsam, edge case'ler
+4. <span class="keyword">Stil:</span> Proje kurallarına uygunluk</pre>
+<div class="box box-danger">
+<div class="box-title">⚠ Kritik Kural: Agent'lar Arası İletişim</div>
+  Agent'lar bash komutuyla birbirini <strong>çağıramaz</strong>. Bunun yerine <code>Agent()</code> tool'unu kullan:
+  <pre style="background:#7F1D1D;margin-top:8px;">Agent(
+  subagent_type="code-reviewer",
+  description="Kodu incele",
+  prompt="Son commit'i güvenlik açısından incele",
+  model="sonnet"
+)</pre>
+<code>"launch"</code>, <code>"run"</code> gibi belirsiz kelimeler kullanma — Claude bash komutu olarak yorumlayabilir.
+</div>
+<!-- ============ KARŞILAŞTIRMA ============ -->
+<h3 class="page-break" id="section-1-4">1.4 Karşılaştırma Tablosu</h3>
+<table>
+<tr>
+<th>Özellik</th>
+<th style="background:var(--primary);">Command</th>
+<th style="background:var(--accent);">Skill</th>
+<th style="background:var(--success);color:#fff;">Agent</th>
+</tr>
+<tr>
+<td><strong>Context</strong></td>
+<td>Mevcut context'e enjekte</td>
+<td>Mevcut context'e enjekte</td>
+<td><strong>Yeni izole context</strong></td>
+</tr>
+<tr>
+<td><strong>Tetikleme</strong></td>
+<td><code>/komut-adi</code></td>
+<td><code>/skill-adi</code> veya preload</td>
+<td><code>Agent()</code> tool</td>
+</tr>
+<tr>
+<td><strong>Amaç</strong></td>
+<td>Orkestrasyon, kullanıcı etkileşimi</td>
+<td>Bilgi / know-how sağlama</td>
+<td>Bağımsız görev yürütme</td>
+</tr>
+<tr>
+<td><strong>Context maliyeti</strong></td>
+<td>Düşük</td>
+<td>Orta</td>
+<td><strong>Yüksek</strong></td>
+</tr>
+<tr>
+<td><strong>Kendi modeli</strong></td>
+<td>Evet</td>
+<td>Hayır</td>
+<td>Evet</td>
+</tr>
+<tr>
+<td><strong>Kalıcı hafıza</strong></td>
+<td>Hayır</td>
+<td>Hayır</td>
+<td><strong>Evet</strong></td>
+</tr>
+<tr>
+<td><strong>Araç kısıtlama</strong></td>
+<td>allowed-tools</td>
+<td>Hayır</td>
+<td>tools / disallowedTools</td>
+</tr>
+<tr>
+<td><strong>Ne zaman</strong></td>
+<td>Her iş akışının başlangıcı</td>
+<td>Tekrarlayan domain bilgisi</td>
+<td>İzole, ağır görevler</td>
+</tr>
+</table>
+<!-- ==================== BÖLÜM 2 ==================== -->
+<h2 id="section-2-">2. Hiyerarşi ve Karar Akışı</h2>
+<h3 id="section-2-1">2.1 Günlük Kullanım Dağılımı</h3>
+<div class="hierarchy">
+<div class="hierarchy-item h1">
+<div class="pct" style="color:var(--primary);">%80</div>
+<div class="label">Vanilla Claude Code</div>
+<div class="desc">İyi CLAUDE.md + direkt prompt</div>
+</div>
+<div class="arrow">→</div>
+<div class="hierarchy-item h2">
+<div class="pct" style="color:var(--accent);">%15</div>
+<div class="label">Command + Skill</div>
+<div class="desc">Tekrarlayan iş akışları</div>
+</div>
+<div class="arrow">→</div>
+<div class="hierarchy-item h3">
+<div class="pct" style="color:var(--success);">%5</div>
+<div class="label">Agent</div>
+<div class="desc">İzole ağır görevler</div>
+</div>
+</div>
+<div class="box box-warn">
+<div class="box-title">Altın Kural</div>
+  "Vanilla Claude Code, küçük görevlerde herhangi bir workflow'dan daha iyidir." Gereksiz karmaşıklık ekleme. Workflow sadece tekrarlayan veya koordinasyon gerektiren işler için.
+</div>
+<h3 id="section-2-2">2.2 Karar Ağacı</h3>
+<div class="flow">
+  Görev basit mi?<br/>
+    <span class="yes">→ Evet →</span> <span class="result">Vanilla Claude Code, hiçbir şey kurma</span><br/>
+    <span class="no">→ Hayır ↓</span><br/><br/>
+
+  Tekrarlayan bir iş akışı mı?<br/>
+    <span class="yes">→ Evet →</span> <span class="result">COMMAND yaz (/build, /test, /deploy)</span><br/>
+    <span class="no">→ Hayır ↓</span><br/><br/>
+
+  Birden fazla yerde kullanılan domain bilgisi mi?<br/>
+    <span class="yes">→ Evet →</span> <span class="result">SKILL yaz (protocol-spec, coding-patterns)</span><br/>
+    <span class="no">→ Hayır ↓</span><br/><br/>
+
+  Ana context'i kirletmeden izole iş mi?<br/>
+    <span class="yes">→ Evet →</span> <span class="result">AGENT tanımla (reviewer, test-runner)</span><br/>
+    <span class="no">→ Hayır →</span> <span class="result">Vanilla Claude Code</span>
+</div>
+<!-- ==================== BÖLÜM 3 ==================== -->
+<h2 class="page-break" id="section-3-">3. Orchestration Workflow</h2>
+<h3 id="section-3-1">3.1 Command → Agent → Skill Pattern</h3>
+<p>En güçlü kullanım şekli üç yapıyı katmanlı birleştirmektir:</p>
+<table>
+<tr><th>Katman</th><th>Rol</th><th>Açıklama</th></tr>
+<tr><td><strong>Command</strong></td><td>Giriş noktası</td><td>Kullanıcıyla etkileşir, agent ve skill'leri koordine eder</td></tr>
+<tr><td><strong>Agent</strong></td><td>Veri çekici</td><td>Preloaded skill ile veri toplar, sonucu command'a döner</td></tr>
+<tr><td><strong>Skill</strong></td><td>Çıktı üretici</td><td>Bağımsız çalışır, agent'tan gelen veriyle çıktı üretir</td></tr>
+</table>
+<h3 id="section-3-2">3.2 Çalışan Örnek: Weather Orchestrator</h3>
+<pre><span class="comment"># Akış</span>
+Kullanıcı → <span class="keyword">/weather-orchestrator</span> (Command)
+  ├── Adım 1: AskUser → Celsius mı Fahrenheit mı?
+  ├── Adım 2: <span class="field">Agent tool</span> → weather-agent
+  │     └── Preloaded Skill: weather-fetcher
+  │     └── Open-Meteo API'den sıcaklık çeker
+  │     └── Döndürür: temperature=26, unit=Celsius
+  ├── Adım 3: <span class="field">Skill tool</span> → weather-svg-creator
+  │     ├── Oluşturur: weather.svg
+  │     └── Yazar: output.md
+  └── Çıktı: SVG kart + özet dosya</pre>
+<h4>Command Dosyası</h4>
+<pre><span class="comment"># .claude/commands/weather-orchestrator.md</span>
+<span class="comment">---</span>
+<span class="field">description</span>: Hava durumu verisi çek ve SVG kart oluştur
+<span class="field">model</span>: haiku
+<span class="comment">---</span>
+
+1. Kullanıcıya sor: Celsius mi Fahrenheit mi?
+2. <span class="keyword">weather-agent</span>'ı çağır (sıcaklık çekmesi için)
+3. Dönen veriyi <span class="keyword">/weather-svg-creator</span> skill'ine ver
+4. Oluşan SVG ve özeti kullanıcıya sun</pre>
+<h4>Agent Dosyası (Preloaded Skill ile)</h4>
+<pre><span class="comment"># .claude/agents/weather-agent.md</span>
+<span class="comment">---</span>
+<span class="field">name</span>: weather-agent
+<span class="field">description</span>: Hava durumu verisi çeken ajan
+<span class="field">tools</span>: Bash(curl *)
+<span class="field">model</span>: haiku
+<span class="field">skills</span>:
+  - weather-fetcher   <span class="comment"># Başlangıçta preload edilir</span>
+<span class="comment">---</span>
+
+Preloaded skill'deki talimatlara göre sıcaklık verisini çek
+ve sonucu döndür.</pre>
+<h4>Temel Prensipler</h4>
+<ul>
+<li><strong>Command</strong> = orkestratör (kullanıcı etkileşimi + koordinasyon)</li>
+<li><strong>Agent</strong> = veri çekme (preloaded skill ile)</li>
+<li><strong>Skill</strong> = bağımsız çıktı üretme</li>
+<li>Her bileşenin <strong>tek bir sorumluluğu</strong> var: Fetch (agent) → Render (skill)</li>
+</ul>
+<!-- ==================== BÖLÜM 4 ==================== -->
+<h2 id="section-4-">4. Memory (CLAUDE.md) Yönetimi</h2>
+<h3 id="section-4-1">4.1 Yükleme Mekanizması</h3>
+<table>
+<tr><th>Tip</th><th>Yükleme</th><th>Açıklama</th></tr>
+<tr><td><strong>Ancestor</strong> (üst dizinler)</td><td>Başlangıçta otomatik</td><td>Claude yukarı yürür, tüm CLAUDE.md'leri yükler</td></tr>
+<tr><td><strong>Descendant</strong> (alt dizinler)</td><td>Tembel (lazy)</td><td>Sadece o dizindeki dosyalarla etkileşimde yüklenir</td></tr>
+<tr><td><strong>Sibling</strong> (kardeş dizinler)</td><td><strong>ASLA</strong></td><td>frontend/ çalışırken backend/CLAUDE.md yüklenmez</td></tr>
+<tr><td><strong>Global</strong></td><td>Her zaman</td><td><code>~/.claude/CLAUDE.md</code> — tüm projelerde geçerli</td></tr>
+</table>
+<h3 id="section-4-2">4.2 Monorepo Stratejisi</h3>
+<div class="tree">
+<span class="dir">/proje-root/</span><br/>
+  ├── <span class="file">CLAUDE.md</span> <span class="note"># Root — ortak kurallar (her zaman yüklenir)</span><br/>
+  ├── <span class="dir">frontend/</span><br/>
+  │   └── <span class="file">CLAUDE.md</span> <span class="note"># Frontend kuralları (lazy)</span><br/>
+  ├── <span class="dir">backend/</span><br/>
+  │   └── <span class="file">CLAUDE.md</span> <span class="note"># Backend kuralları (lazy)</span><br/>
+  ├── <span class="dir">firmware/</span><br/>
+  │   └── <span class="file">CLAUDE.md</span> <span class="note"># Firmware kuralları (lazy)</span><br/>
+  └── <span class="dir">api/</span><br/>
+      └── <span class="file">CLAUDE.md</span> <span class="note"># API kuralları (lazy)</span>
+</div>
+<div class="box box-warn">
+<div class="box-title">CLAUDE.md Kuralları</div>
+<ul>
+<li>Dosya başına <strong>200 satırı geçme</strong> (ideal: 60 satır)</li>
+<li><code>CLAUDE.local.md</code> ile kişisel tercihleri ayır (<code>.gitignore</code>'a ekle)</li>
+<li><code>/memory</code> ve <code>/rules</code> komutları hiçbir şeyi <strong>garanti etmez</strong> — MUST yazmak bile yetmez</li>
+<li>Bilgiyi CLAUDE.md'ye tıkmak yerine <strong>skill'lere</strong> böl</li>
+</ul>
+</div>
+<!-- ==================== BÖLÜM 5 ==================== -->
+<h2 class="page-break" id="section-5-">5. MCP Server Konfigürasyonu</h2>
+<p>MCP (Model Context Protocol) server'lar Claude Code'u harici araçlara, veritabanlarına ve API'lere bağlar.</p>
+<h4>Konfigürasyon Konumları ve Öncelikleri</h4>
+<table>
+<tr><th>Konum</th><th>Kapsam</th><th>Öncelik</th></tr>
+<tr><td>Agent frontmatter (<code>mcpServers</code>)</td><td>O agent'a özel</td><td>1 (En yüksek)</td></tr>
+<tr><td><code>.mcp.json</code> (repo root)</td><td>Proje</td><td>2</td></tr>
+<tr><td><code>~/.claude.json</code></td><td>Kullanıcı (tüm projeler)</td><td>3</td></tr>
+</table>
+<h4>Önerilen MCP Server'lar</h4>
+<table>
+<tr><th>Server</th><th>Paket</th><th>İşlev</th></tr>
+<tr><td><strong>Context7</strong></td><td><code>@upstash/context7-mcp</code></td><td>Güncel kütüphane dokümantasyonunu çeker, hallucination'ı önler</td></tr>
+<tr><td><strong>Playwright</strong></td><td><code>@playwright/mcp</code></td><td>Browser otomasyonu — UI test, screenshot, form</td></tr>
+<tr><td><strong>Chrome DevTools</strong></td><td>—</td><td>Gerçek Chrome'a bağlanır — console, network, DOM debug</td></tr>
+<tr><td><strong>DeepWiki</strong></td><td><code>deepwiki-mcp</code></td><td>GitHub repo'lar için wiki-style dokümantasyon</td></tr>
+<tr><td><strong>Excalidraw</strong></td><td>—</td><td>Mimari diyagram, flowchart oluşturma</td></tr>
+</table>
+<h4>Örnek .mcp.json</h4>
+<pre>{
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"context7"</span>: {
+      <span class="field">"command"</span>: <span class="string">"npx"</span>,
+      <span class="field">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@upstash/context7-mcp"</span>]
+    },
+    <span class="string">"playwright"</span>: {
+      <span class="field">"command"</span>: <span class="string">"npx"</span>,
+      <span class="field">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@playwright/mcp"</span>]
+    }
+  }
+}</pre>
+<div class="box box-danger">
+<div class="box-title">Uyarı: Fazla MCP = Fazla Karmaşıklık</div>
+  "15 MCP server kurdum, daha fazla = daha iyi diye düşünerek. Sonuçta günlük sadece 4 tanesini kullanıyordum." — r/mcp (682 upvote). Sadece gerçekten kullandıklarını ekle.
+</div>
+<!-- ==================== BÖLÜM 6 ==================== -->
+<h2 id="section-6-">6. Settings ve Konfigürasyon</h2>
+<h4>Dosya Hiyerarşisi</h4>
+<table>
+<tr><th>Dosya</th><th>Kapsam</th><th>Açıklama</th></tr>
+<tr><td><code>~/.claude/settings.json</code></td><td>Global</td><td>Tüm projelerde geçerli kullanıcı ayarları</td></tr>
+<tr><td><code>.claude/settings.json</code></td><td>Proje</td><td>Takım paylaşımlı proje ayarları</td></tr>
+<tr><td><code>.claude/settings.local.json</code></td><td>Kişisel</td><td>git-ignored kişisel overrides</td></tr>
+<tr><td><code>managed-settings.json</code></td><td>Organizasyon</td><td>Override edilemez, en yüksek öncelik</td></tr>
+</table>
+<h4>Önerilen Ayarlar</h4>
+<ul>
+<li><strong>Thinking mode:</strong> <code>true</code> — Claude'un reasoning sürecini görmek için</li>
+<li><strong>Output Style:</strong> <code>Explanatory</code> — ★ Insight kutuları ile detaylı çıktı (yeni codebase'de)</li>
+<li><strong>Output Style:</strong> <code>Learning</code> — koçluk modu (öğrenme amaçlı)</li>
+<li><code>settings.json</code>'u <strong>git'e check-in et</strong> — takım faydalansın</li>
+<li><code>env</code> alanını kullan — wrapper script'lere gerek kalmaz (84 ortam değişkeni)</li>
+</ul>
+<!-- ==================== BÖLÜM 7 ==================== -->
+<h2 id="section-7-">7. Hooks (Kancalar)</h2>
+<p>Agentic döngü <strong>dışında</strong>, belirli event'lerde çalışan deterministik scriptler.</p>
+<h4>Hook Event'leri</h4>
+<table>
+<tr><th>Event</th><th>Ne Zaman Tetiklenir</th></tr>
+<tr><td><code>PreToolUse</code></td><td>Araç çağrılmadan hemen önce</td></tr>
+<tr><td><code>PostToolUse</code></td><td>Araç çağrısı tamamlandıktan sonra</td></tr>
+<tr><td><code>UserPromptSubmit</code></td><td>Kullanıcı prompt gönderdiğinde</td></tr>
+<tr><td><code>Stop</code></td><td>Claude durduğunda</td></tr>
+<tr><td><code>SubagentStart / SubagentStop</code></td><td>Agent başlatıldığında / durdurulduğunda</td></tr>
+<tr><td><code>Notification</code></td><td>Bildirim geldiğinde</td></tr>
+<tr><td><code>PreCompact</code></td><td>Compact işleminden önce</td></tr>
+<tr><td><code>SessionStart / SessionEnd</code></td><td>Oturum açılış / kapanış</td></tr>
+</table>
+<h4>Kullanım Alanları</h4>
+<ul>
+<li>Git commit olduğunda ses çalma</li>
+<li>İzin isteklerini Slack'e yönlendirme</li>
+<li>Tool çağrılarını loglama</li>
+<li>Claude durduğunda devam etmesini sağlama (nudge)</li>
+<li>Her işlem sonrası lint çalıştırma</li>
+</ul>
+<!-- ==================== BÖLÜM 8 ==================== -->
+<h2 class="page-break" id="section-8-">8. Agent Memory (Kalıcı Hafıza)</h2>
+<p>Claude Code v2.1.33'te tanıtıldı. Her agent'a kendi kalıcı hafızasını verir — oturumlar arası öğrenme sağlar.</p>
+<h4>Memory Scope'ları</h4>
+<table>
+<tr><th>Scope</th><th>Konum</th><th>Kimler Görür</th></tr>
+<tr><td><code>user</code></td><td><code>~/.claude/agent-memory/&lt;agent&gt;/</code></td><td>Sadece sen, tüm projeler</td></tr>
+<tr><td><code>project</code></td><td><code>.claude/agent-memory/&lt;agent&gt;/</code></td><td>Tüm takım, bu proje</td></tr>
+<tr><td><code>local</code></td><td><code>.claude/agent-memory.local/&lt;agent&gt;/</code></td><td>Sadece sen, bu proje</td></tr>
+</table>
+<h4>Mekanizma</h4>
+<ul>
+<li>Başlangıçta <code>MEMORY.md</code>'nin ilk <strong>200 satırı</strong> system prompt'a enjekte edilir</li>
+<li><code>Read</code>, <code>Write</code>, <code>Edit</code> otomatik etkinleştirilir</li>
+<li>200 satırı geçerse agent detayları topic-specific dosyalara taşır</li>
+<li>Skills = statik bilgi (başlangıçta) ↔ Memory = dinamik bilgi (zamanla birikir)</li>
+</ul>
+<h4>Örnek: Hafızalı Agent</h4>
+<pre><span class="comment">---</span>
+<span class="field">name</span>: api-developer
+<span class="field">tools</span>: Read, Write, Edit, Bash
+<span class="field">model</span>: sonnet
+<span class="field">memory</span>: project
+<span class="field">skills</span>:
+  - api-conventions
+  - error-handling-patterns
+<span class="comment">---</span>
+
+API endpoint'leri implement et. Preloaded skill'lerdeki
+kurallara uy. Çalışırken mimari kararları ve keşfettiğin
+pattern'leri hafızana kaydet.
+
+<span class="keyword">Başlamadan önce hafızanı kontrol et.</span></pre>
+<div class="tree">
+<span class="dir">~/.claude/agent-memory/api-developer/</span><br/>
+  ├── <span class="file">MEMORY.md</span> <span class="note"># Ana dosya (ilk 200 satır yüklenir)</span><br/>
+  ├── <span class="file">rest-patterns.md</span> <span class="note"># Konu-spesifik</span><br/>
+  └── <span class="file">error-catalog.md</span> <span class="note"># Konu-spesifik</span>
+</div>
+<!-- ==================== BÖLÜM 9 ==================== -->
+<h2 id="section-9-">9. Altın Kurallar ve İpuçları</h2>
+<h3 id="section-9-1">9.1 Workflow İpuçları</h3>
+<table>
+<tr><th>Kural</th><th>Açıklama</th></tr>
+<tr><td>Her zaman <strong>plan mode</strong> ile başla</td><td><code>/plan</code> komutu — önce oku, sonra uygula</td></tr>
+<tr><td><code>ultrathink</code> kullan</td><td>Prompt'a "ultrathink" ekle → yüksek effort reasoning</td></tr>
+<tr><td>Feature-specific agent tanımla</td><td>"QA engineer" yerine "auth-module-reviewer" gibi spesifik</td></tr>
+<tr><td>Skills ile progressive disclosure</td><td>Tüm bilgiyi CLAUDE.md'ye tıkma, skill'lere böl</td></tr>
+<tr><td><strong>Faz bazlı plan</strong> yap</td><td>Her fazda birim + entegrasyon + otomasyon testi olsun</td></tr>
+<tr><td>Cross-model review kullan</td><td>Planı başka model ile review ettir (ör: Codex)</td></tr>
+<tr><td>Claude'a röportaj yaptır</td><td><code>AskUserQuestion</code> tool ile spec oluştur, sonra yeni oturumda execute et</td></tr>
+<tr><td>Detaylı spec yaz</td><td>Belirsizliği azalt — ne kadar spesifiksen o kadar iyi çıktı</td></tr>
+</table>
+<h3 id="section-9-2">9.2 Context Yönetimi</h3>
+<table>
+<tr><th>Kural</th><th>Açıklama</th></tr>
+<tr><td><strong>%50'de /compact</strong> yap</td><td>"Agent dumb zone"dan kaçın — context dolmadan sıkıştır</td></tr>
+<tr><td><code>/clear</code> ile sıfırla</td><td>Görev değiştiğinde oturumu sıfırla</td></tr>
+<tr><td><code>/context</code> ile takip et</td><td>Context kullanımını renkli grid olarak gör</td></tr>
+<tr><td><code>Esc Esc</code> veya <code>/rewind</code></td><td>Claude yanlış yöne giderse düzeltme yerine geri sar</td></tr>
+<tr><td><code>"use subagents"</code> de</td><td>Ağır işi subagent'a offload et, ana context temiz kalsın</td></tr>
+<tr><td>Oturumları adlandır</td><td><code>/rename [TODO - refactor]</code> → sonra <code>/resume</code> ile devam</td></tr>
+</table>
+<h3 id="section-9-3">9.3 Debugging</h3>
+<table>
+<tr><th>Yöntem</th><th>Açıklama</th></tr>
+<tr><td><code>/doctor</code></td><td>Claude Code kurulum sağlığını kontrol et</td></tr>
+<tr><td>Background task olarak çalıştır</td><td>Log görmek istediğin terminal'i arka planda aç</td></tr>
+<tr><td>MCP ile browser debug</td><td>Claude in Chrome / Playwright / Chrome DevTools MCP</td></tr>
+<tr><td>Screenshot ver</td><td>Görsel sorunlarda ekran görüntüsü paylaş</td></tr>
+<tr><td>Farklı model ile QA</td><td>İmplementasyonu başka model/araç ile review et</td></tr>
+<tr><td>Claude'a meydan oku</td><td>"Bu değişiklikleri eleştir, testi geçmeden PR açma"</td></tr>
+</table>
+<h3 id="section-9-4">9.4 Araçlar ve Yardımcılar</h3>
+<table>
+<tr><th>Araç</th><th>Açıklama</th></tr>
+<tr><td><strong>iTerm / Ghostty / tmux</strong></td><td>IDE yerine terminal kullan</td></tr>
+<tr><td><strong>Wispr Flow</strong></td><td>Sesli prompt — 10x verimlilik iddiası</td></tr>
+<tr><td><strong>Wildcard permissions</strong></td><td><code>Bash(npm run *)</code>, <code>Edit(/docs/**)</code> — dangerously-skip yerine</td></tr>
+<tr><td><code>/sandbox</code></td><td>Dosya ve ağ izolasyonu ile izin prompt'larını azalt</td></tr>
+<tr><td><strong>Agent Teams + tmux</strong></td><td>Paralel geliştirme için çoklu agent</td></tr>
+<tr><td><strong>Git Worktrees</strong></td><td>Her agent'a izole branch — paralel çalışma</td></tr>
+<tr><td><strong>Ralph Wiggum plugin</strong></td><td>Otonom döngüde uzun görevleri tamamlama</td></tr>
+</table>
+<!-- ==================== BÖLÜM 10 ==================== -->
+<h2 class="page-break" id="section-10-">10. Yapılması ve Yapılmaması Gerekenler</h2>
+<table>
+<tr><th style="background:var(--success);color:#fff;">✅ YAP</th><th style="background:var(--danger);color:#fff;">❌ YAPMA</th></tr>
+<tr>
+<td>CLAUDE.md'yi 200 satır altında tut</td>
+<td>Her şeyi tek CLAUDE.md'ye tıkma</td>
+</tr>
+<tr>
+<td>Monorepo'da katmanlı CLAUDE.md kullan</td>
+<td>Tek devasa CLAUDE.md ile yönetmeye çalışma</td>
+</tr>
+<tr>
+<td>Feature-specific agent tanımla</td>
+<td>Genel "QA engineer", "backend dev" agent kullanma</td>
+</tr>
+<tr>
+<td>Workflow için command kullan</td>
+<td>Basit iş akışı için agent açma</td>
+</tr>
+<tr>
+<td>Her görev bitince hemen commit at</td>
+<td>Uzun süre commit atmadan çalışma</td>
+</tr>
+<tr>
+<td>%50'de <code>/compact</code> yap</td>
+<td>Context dolana kadar bekleme</td>
+</tr>
+<tr>
+<td><code>Esc Esc</code> / <code>/rewind</code> ile geri sar</td>
+<td>Aynı context'te hatayı düzeltmeye çalışma</td>
+</tr>
+<tr>
+<td>Wildcard permission kullan</td>
+<td><code>dangerously-skip-permissions</code> kullanma</td>
+</tr>
+<tr>
+<td>Claude Code'u her gün güncelle</td>
+<td>Eski versiyonda takılı kalma</td>
+</tr>
+<tr>
+<td>Plan mode ile başla</td>
+<td>Direkt implementasyona dalma</td>
+</tr>
+<tr>
+<td>Detaylı spec yaz, belirsizliği azalt</td>
+<td>Muğlak prompt ile kaliteli çıktı bekleme</td>
+</tr>
+<tr>
+<td><code>settings.json</code>'u git'e check-in et</td>
+<td>Takım ayarlarını paylaşmadan çalışma</td>
+</tr>
+<tr>
+<td>Agent'ı <code>Agent()</code> tool ile çağır</td>
+<td>Agent'ı bash komutuyla çağırma</td>
+</tr>
+<tr>
+<td>Sadece kullandığın MCP'leri ekle</td>
+<td>15 MCP kurup "daha fazla = daha iyi" sanma</td>
+</tr>
+<tr>
+<td>Vanilla CC'yi küçük işlerde tercih et</td>
+<td>Her şey için workflow/agent kurma</td>
+</tr>
+</table>
+<!-- ==================== FOOTER ==================== -->
+<div class="doc-footer">
+  Kaynak: shanraisshan/claude-code-best-practice · Boris Cherny &amp; Claude Code Ekibi · Anthropic Docs<br/>
+  Bu döküman referans rehberidir. Claude Code sürekli güncellenmektedir — resmi changelog'u takip edin.
+</div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP & Plugin Setup Guide</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif; background: #f5f7fa; color: #1a1a2e; line-height: 1.7; padding: 40px 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 8px; color: #1a1a2e; }
+        .subtitle { color: #666; font-size: 15px; margin-bottom: 32px; }
+        .server-card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e8ecf0; }
+        .server-card h2 { font-size: 20px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .server-card h2 img { width: 28px; height: 28px; }
+        .server-card .desc { color: #666; font-size: 14px; margin-bottom: 16px; }
+        .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .badge-plugin { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .badge-mcp { background: rgba(217,119,6,0.1); color: #d97706; }
+        .steps { counter-reset: step; }
+        .steps li { counter-increment: step; list-style: none; padding: 8px 0 8px 36px; position: relative; font-size: 14px; }
+        .steps li::before { content: counter(step); position: absolute; left: 0; top: 8px; width: 24px; height: 24px; background: #3b82f6; color: #fff; border-radius: 50%; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        a { color: #3b82f6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { background: #f0f2f5; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Consolas', monospace; }
+        .note { background: #eff6ff; border-left: 3px solid #3b82f6; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13px; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MCP & Plugin Setup Guide</h1>
+        <p class="subtitle">How to set up and authenticate each integration in AI Tool.</p>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/figma.svg" alt=""> Figma <span class="badge badge-plugin">Plugin</span></h2>
+            <p class="desc">Design files, components, styles.</p>
+            <ol class="steps">
+                <li>Click <strong>"Install to Claude"</strong> in the app.</li>
+                <li>Open Claude Code and run <code>/mcp</code>.</li>
+                <li>Select <strong>figma</strong> and click <strong>"Authenticate"</strong>.</li>
+                <li>Sign in with your Figma account in the browser and authorize.</li>
+            </ol>
+            <div class="note">No API key needed. Figma uses OAuth &mdash; just sign in when prompted.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/postman.svg" alt=""> Postman <span class="badge badge-mcp">MCP</span></h2>
+            <p class="desc">API collections, testing.</p>
+            <ol class="steps">
+                <li>Click <strong>"Install to Claude"</strong> in the app.</li>
+                <li>Open Claude Code and run <code>/mcp</code>.</li>
+                <li>Select <strong>postman</strong> and click <strong>"Authenticate"</strong>.</li>
+                <li>Sign in with your Postman account in the browser and authorize.</li>
+            </ol>
+            <div class="note">Postman MCP uses OAuth. No manual API key required.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/jira.svg" alt=""> Jira (Atlassian) <span class="badge badge-mcp">MCP</span></h2>
+            <p class="desc">Issue tracking, sprint management.</p>
+            <ol class="steps">
+                <li>Click <strong>"Install to Claude"</strong> in the app.</li>
+                <li>Open Claude Code and run <code>/mcp</code>.</li>
+                <li>Select <strong>atlassian</strong> and click <strong>"Authenticate"</strong>.</li>
+                <li>Sign in with your Atlassian account and grant access.</li>
+            </ol>
+            <div class="note">Uses Atlassian OAuth through a remote HTTP MCP server. The app writes the Atlassian MCP entry into your user-level Claude MCP config so it is available across projects, then you authenticate from <code>/mcp</code>. Make sure you have Browse, Create, Edit, Delete, and Transition permissions on your Jira projects.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/github.svg" alt=""> GitHub <span class="badge badge-plugin">Plugin</span></h2>
+            <p class="desc">Pull requests, issues, code review.</p>
+            <ol class="steps">
+                <li>Click <strong>"Install to Claude"</strong> in the app.</li>
+                <li>Open Claude Code and run <code>/mcp</code>.</li>
+                <li>Select <strong>github</strong> and click <strong>"Authenticate"</strong>.</li>
+                <li>Sign in with your GitHub account and authorize the app.</li>
+            </ol>
+            <div class="note">GitHub uses OAuth. No personal access token required.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/postgres.svg" alt=""> PostgreSQL <span class="badge badge-mcp">MCP</span></h2>
+            <p class="desc">Database queries, schema inspection.</p>
+            <ol class="steps">
+                <li>Click <strong>"Install to Claude"</strong> in the app.</li>
+                <li>Fill in the connection form: <strong>Host</strong>, <strong>Port</strong>, <strong>Database</strong>, <strong>Username</strong>, <strong>Password</strong>.</li>
+                <li>Click <strong>"Install to Claude"</strong> in the modal.</li>
+                <li>The app validates the connection automatically before it saves the configuration.</li>
+            </ol>
+            <div class="note">PostgreSQL is the only integration that requires manual credentials. The connection string is stored in your user-level Claude MCP config at <code>~/.claude.json</code>.</div>
+        </div>
+
+        <div class="server-card">
+            <h2>Other Plugins</h2>
+            <p class="desc">Superpowers, Playwright, TypeScript LSP, Code Review, Security Guidance, Frontend Design, Code Simplifier</p>
+            <ol class="steps">
+                <li>Click <strong>"Install to Claude"</strong> in the app.</li>
+                <li>Done! These plugins work immediately &mdash; no authentication needed.</li>
+            </ol>
+            <div class="note">These plugins don't require any authentication or API keys. They are ready to use right after installation.</div>
+        </div>
+    </div>
+</body>
+</html>

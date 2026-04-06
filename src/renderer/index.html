@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="preload" href="fonts/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/MaterialIconsRound.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body style="background:transparent">
+    <!-- Loading overlay — removed by app.js on init -->
+    <div id="loading-overlay" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg-body);border-radius:8px">
+        <div style="text-align:center">
+            <img src="assets/header-dark.png" alt="" style="height:38px;margin-bottom:18px;opacity:.85">
+            <div id="loading-spinner" style="width:28px;height:28px;margin:0 auto;border:3px solid #2d2e48;border-top-color:#5b9aff;border-radius:50%;animation:sp .7s linear infinite"></div>
+        </div>
+        <style>@keyframes sp{to{transform:rotate(360deg)}}</style>
+    </div>
+    <div id="app">
+        <header id="header" class="titlebar-drag">
+            <div class="toolbar-left titlebar-nodrag">
+                <button id="menu-btn" class="toolbar-btn" title="">
+                    <span class="mi">menu</span>
+                </button>
+            </div>
+            <div class="toolbar-center">
+                <div class="header-brand">
+                    <img src="assets/header-light.png" class="header-app-icon" data-theme-light-src="assets/header-light.png" data-theme-dark-src="assets/header-dark.png" alt="">
+                    <span class="header-title"></span>
+                </div>
+            </div>
+            <div class="toolbar-right titlebar-nodrag">
+                <button id="btn-win-minimize" class="toolbar-btn win-ctrl-btn" title="Minimize">
+                    <span class="mi">remove</span>
+                </button>
+                <button id="btn-win-maximize" class="toolbar-btn win-ctrl-btn" title="Maximize">
+                    <span class="mi">crop_square</span>
+                </button>
+                <button id="btn-win-close" class="toolbar-btn win-ctrl-btn win-close-btn" title="Close">
+                    <span class="mi">close</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Menu Overlay -->
+        <div id="menu-overlay" class="menu-overlay hidden">
+            <nav id="menu-panel" class="menu-panel">
+                <a data-page="dev-tools" class="menu-item" id="mi-dev-tools">
+                    <span class="mi">build</span>
+                    <span id="mi-dev-tools-text"></span>
+                </a>
+                <a data-page="best-practices" class="menu-item" id="mi-best-practices">
+                    <span class="mi">menu_book</span>
+                    <span id="mi-best-practices-text"></span>
+                </a>
+                <a data-page="skills" class="menu-item" id="mi-skills">
+                    <span class="mi">widgets</span>
+                    <span id="mi-skills-text"></span>
+                </a>
+                <a data-page="mcp-servers" class="menu-item" id="mi-mcp-servers">
+                    <span class="mi">hub</span>
+                    <span id="mi-mcp-servers-text"></span>
+                </a>
+                <a data-page="about" class="menu-item" id="mi-about">
+                    <span class="mi">info</span>
+                    <span id="mi-about-text"></span>
+                </a>
+                <div class="menu-divider" aria-hidden="true"></div>
+                <a class="menu-item menu-item-danger" id="mi-exit">
+                    <span class="mi">close</span>
+                    <span id="mi-exit-text"></span>
+                </a>
+            </nav>
+        </div>
+
+        <div id="content">
+            <!-- STEP 1: System Info + Prerequisites -->
+            <div class="step" id="step-1">
+                <div class="step-row step-row-side-by-side">
+                    <!-- Left: System Info -->
+                    <div class="step-col-left">
+                    <div class="card sysinfo-card">
+                        <div class="card-header">
+                            <span class="mi card-icon">computer</span>
+                            <h2></h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="sysinfo-grid">
+                                <div class="sysinfo-item" id="sysinfo-row-os">
+                                    <span class="mi sysinfo-icon">desktop_windows</span>
+                                    <span class="sysinfo-value" id="sys-os">—</span>
+                                </div>
+                                <div class="sysinfo-item" id="sysinfo-row-cpu">
+                                    <span class="mi sysinfo-icon">developer_board</span>
+                                    <span class="sysinfo-value" id="sys-cpu">—</span>
+                                </div>
+                                <div class="sysinfo-item" id="sysinfo-row-cpu-usage">
+                                    <span class="mi sysinfo-icon">speed</span>
+                                    <span class="sysinfo-value" id="sys-cpu-usage">—</span>
+                                </div>
+                                <div class="sysinfo-item" id="sysinfo-row-ram">
+                                    <span class="mi sysinfo-icon">memory</span>
+                                    <span class="sysinfo-value" id="sys-ram">—</span>
+                                </div>
+                                <div class="sysinfo-item" id="sysinfo-row-disk">
+                                    <span class="mi sysinfo-icon">save</span>
+                                    <span class="sysinfo-value" id="sys-disk">—</span>
+                                </div>
+                                <div class="sysinfo-item" id="sysinfo-row-boot" style="cursor:pointer">
+                                    <span class="mi sysinfo-icon">schedule</span>
+                                    <span class="sysinfo-value" id="sys-boot">—</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- Right: Quick Access -->
+                    <div class="step-col-right">
+                    <div class="card walkthrough-card">
+                        <div class="card-header">
+                            <span class="mi card-icon">explore</span>
+                            <h2 id="walkthrough-title-text"></h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="walkthrough-grid">
+                                <button class="walkthrough-btn" id="wt-dev-tools">
+                                    <span class="mi walkthrough-btn-icon">build</span>
+                                    <span id="wt-dev-tools-text"></span>
+                                </button>
+                                <button class="walkthrough-btn" id="wt-apply-settings">
+                                    <span class="mi walkthrough-btn-icon">settings_suggest</span>
+                                    <span id="wt-apply-settings-text"></span>
+                                </button>
+                                <button class="walkthrough-btn" id="wt-skills">
+                                    <span class="mi walkthrough-btn-icon">widgets</span>
+                                    <span id="wt-skills-text"></span>
+                                </button>
+                                <button class="walkthrough-btn" id="wt-mcp-servers">
+                                    <span class="mi walkthrough-btn-icon">hub</span>
+                                    <span id="wt-mcp-servers-text"></span>
+                                </button>
+                                <button class="walkthrough-btn" id="wt-best-practices">
+                                    <span class="mi walkthrough-btn-icon">menu_book</span>
+                                    <span id="wt-best-practices-text"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirm-overlay" class="modal-overlay hidden">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <img id="confirm-icon" class="confirm-header-icon hidden" src="" alt="">
+                    <span class="modal-title" id="confirm-title"></span>
+                    <button id="confirm-close" class="modal-close" type="button"><span class="mi">close</span></button>
+                </div>
+                <div class="modal-body" id="confirm-body"></div>
+                <div class="modal-footer">
+                    <button id="confirm-no" class="btn btn-secondary"></button>
+                    <button id="confirm-yes" class="btn btn-primary"></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="footer" class="footer">
+            <button class="footer-btn" id="btn-theme" title="">&#x2600;</button>
+            <button class="footer-btn" id="btn-lang" title="">EN</button>
+            <button class="footer-btn" id="btn-terminal-toggle" title="Logs">Logs</button>
+            <span class="footer-spacer"></span>
+            <button id="btn-log-copy" class="footer-btn footer-log-action hidden" type="button" title="Copy">
+                <span class="mi" style="font-size:16px">copy_all</span>
+            </button>
+            <button id="btn-log-toggle" class="footer-btn footer-log-action hidden" type="button" title="Collapse">
+                <span id="log-toggle" class="mi" style="font-size:16px">expand_less</span>
+            </button>
+        </div>
+
+        <div id="log-area" class="log-area collapsed"></div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="js/bridge.js" defer></script>
+    <script src="js/app.js" defer></script>
+</body>
+</html>

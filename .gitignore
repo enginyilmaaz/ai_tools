@@ -1,0 +1,12 @@
+node_modules/
+out/
+dist/
+artifacts/
+installer_output/
+bin/
+obj/
+
+.idea/
+.DS_Store
+Thumbs.db
+.playwright-mcp/

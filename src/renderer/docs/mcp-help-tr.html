@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP & Plugin Kurulum Rehberi</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif; background: #f5f7fa; color: #1a1a2e; line-height: 1.7; padding: 40px 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 8px; color: #1a1a2e; }
+        .subtitle { color: #666; font-size: 15px; margin-bottom: 32px; }
+        .server-card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #e8ecf0; }
+        .server-card h2 { font-size: 20px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .server-card h2 img { width: 28px; height: 28px; }
+        .server-card .desc { color: #666; font-size: 14px; margin-bottom: 16px; }
+        .badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .badge-plugin { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .badge-mcp { background: rgba(217,119,6,0.1); color: #d97706; }
+        .steps { counter-reset: step; }
+        .steps li { counter-increment: step; list-style: none; padding: 8px 0 8px 36px; position: relative; font-size: 14px; }
+        .steps li::before { content: counter(step); position: absolute; left: 0; top: 8px; width: 24px; height: 24px; background: #3b82f6; color: #fff; border-radius: 50%; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        a { color: #3b82f6; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        code { background: #f0f2f5; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'Cascadia Code', 'Consolas', monospace; }
+        .note { background: #eff6ff; border-left: 3px solid #3b82f6; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 13px; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MCP & Plugin Kurulum Rehberi</h1>
+        <p class="subtitle">AI Tool'daki her entegrasyonu nas&#305;l kurar ve yetkilendirirsiniz.</p>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/figma.svg" alt=""> Figma <span class="badge badge-plugin">Eklenti</span></h2>
+            <p class="desc">Tasar&#305;m dosyalar&#305;, bile&#351;enler, stiller.</p>
+            <ol class="steps">
+                <li>Uygulamada <strong>&quot;Claude'a Kur&quot;</strong> butonuna t&#305;klay&#305;n.</li>
+                <li>Claude Code'u a&ccedil;&#305;p <code>/mcp</code> yaz&#305;n.</li>
+                <li><strong>figma</strong> se&ccedil;ip <strong>&quot;Authenticate&quot;</strong> t&#305;klay&#305;n.</li>
+                <li>Taray&#305;c&#305;da Figma hesab&#305;n&#305;zla giri&#351; yap&#305;p yetkilendirin.</li>
+            </ol>
+            <div class="note">API key gerekmez. Figma OAuth kullan&#305;r &mdash; soruldu&#287;unda giri&#351; yapman&#305;z yeterli.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/postman.svg" alt=""> Postman <span class="badge badge-mcp">MCP</span></h2>
+            <p class="desc">API koleksiyonlar&#305;, test.</p>
+            <ol class="steps">
+                <li>Uygulamada <strong>&quot;Claude'a Kur&quot;</strong> butonuna t&#305;klay&#305;n.</li>
+                <li>Claude Code'u a&ccedil;&#305;p <code>/mcp</code> yaz&#305;n.</li>
+                <li><strong>postman</strong> se&ccedil;ip <strong>&quot;Authenticate&quot;</strong> t&#305;klay&#305;n.</li>
+                <li>Taray&#305;c&#305;da Postman hesab&#305;n&#305;zla giri&#351; yap&#305;p yetkilendirin.</li>
+            </ol>
+            <div class="note">Postman MCP, OAuth kullan&#305;r. Manuel API key gerekmez.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/jira.svg" alt=""> Jira (Atlassian) <span class="badge badge-mcp">MCP</span></h2>
+            <p class="desc">Issue takibi, sprint y&ouml;netimi.</p>
+            <ol class="steps">
+                <li>Uygulamada <strong>&quot;Claude'a Kur&quot;</strong> butonuna t&#305;klay&#305;n.</li>
+                <li>Claude Code'u a&ccedil;&#305;p <code>/mcp</code> yaz&#305;n.</li>
+                <li><strong>atlassian</strong> se&ccedil;ip <strong>&quot;Authenticate&quot;</strong> t&#305;klay&#305;n.</li>
+                <li>Atlassian hesab&#305;n&#305;zla giri&#351; yap&#305;p eri&#351;im verin.</li>
+            </ol>
+            <div class="note">Atlassian, uzaktaki bir HTTP MCP sunucusu &uuml;zerinden OAuth kullan&#305;r. Uygulama Atlassian MCP kayd&#305;n&#305; t&uuml;m projelerde ge&ccedil;erli olacak user-level Claude MCP yap&#305;land&#305;rmas&#305;na yazar; ard&#305;ndan <code>/mcp</code> i&ccedil;inden yetkilendirirsiniz. Jira projelerinizde Browse, Create, Edit, Delete ve Transition yetkileriniz oldu&#287;undan emin olun.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/github.svg" alt=""> GitHub <span class="badge badge-plugin">Eklenti</span></h2>
+            <p class="desc">Pull request, issue, code review.</p>
+            <ol class="steps">
+                <li>Uygulamada <strong>&quot;Claude'a Kur&quot;</strong> butonuna t&#305;klay&#305;n.</li>
+                <li>Claude Code'u a&ccedil;&#305;p <code>/mcp</code> yaz&#305;n.</li>
+                <li><strong>github</strong> se&ccedil;ip <strong>&quot;Authenticate&quot;</strong> t&#305;klay&#305;n.</li>
+                <li>GitHub hesab&#305;n&#305;zla giri&#351; yap&#305;p uygulamay&#305; yetkilendirin.</li>
+            </ol>
+            <div class="note">GitHub OAuth kullan&#305;r. Ki&#351;isel eri&#351;im token&#305; gerekmez.</div>
+        </div>
+
+        <div class="server-card">
+            <h2><img src="../assets/mcp/postgres.svg" alt=""> PostgreSQL <span class="badge badge-mcp">MCP</span></h2>
+            <p class="desc">Veritaban&#305; sorgusu, &#351;ema inceleme.</p>
+            <ol class="steps">
+                <li>Uygulamada <strong>&quot;Claude'a Kur&quot;</strong> butonuna t&#305;klay&#305;n.</li>
+                <li>Ba&#287;lant&#305; formunu doldurun: <strong>Host</strong>, <strong>Port</strong>, <strong>Veritaban&#305;</strong>, <strong>Kullan&#305;c&#305; Ad&#305;</strong>, <strong>&#350;ifre</strong>.</li>
+                <li>Modaldaki <strong>&quot;Claude'a Kur&quot;</strong> butonuna t&#305;klay&#305;n.</li>
+                <li>Uygulama kaydetmeden &#246;nce ba&#287;lant&#305;y&#305; otomatik olarak do&#287;rular.</li>
+            </ol>
+            <div class="note">PostgreSQL, manuel kimlik bilgisi gerektiren tek entegrasyondur. Ba&#287;lant&#305; bilgileri user-level Claude MCP yap&#305;land&#305;rmas&#305; olan <code>~/.claude.json</code> dosyas&#305;nda saklan&#305;r.</div>
+        </div>
+
+        <div class="server-card">
+            <h2>Di&#287;er Eklentiler</h2>
+            <p class="desc">Superpowers, Playwright, TypeScript LSP, Code Review, Security Guidance, Frontend Design, Code Simplifier</p>
+            <ol class="steps">
+                <li>Uygulamada <strong>&quot;Claude'a Kur&quot;</strong> butonuna t&#305;klay&#305;n.</li>
+                <li>Tamam! Bu eklentiler hemen &ccedil;al&#305;&#351;&#305;r &mdash; kimlik do&#287;rulama gerekmez.</li>
+            </ol>
+            <div class="note">Bu eklentiler hi&ccedil;bir kimlik do&#287;rulama veya API anahtar&#305; gerektirmez. Kurulumdan hemen sonra kullan&#305;ma haz&#305;rd&#305;r.</div>
+        </div>
+    </div>
+</body>
+</html>
