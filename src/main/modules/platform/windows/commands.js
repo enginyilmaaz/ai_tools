@@ -8,7 +8,7 @@ const WindowsCommands = {
   checkClaudeDesktop: null,
   checkExtensions: (editor) => `cmd /c ${editor} --list-extensions --show-versions`,
   checkNvm: 'cmd /c nvm version',
-  installNvm: 'winget install -e --id CoreyButler.NVMforWindows --accept-package-agreements --accept-source-agreements',
+  installNvm: 'winget install -e --id CoreyButler.NVMforWindows --accept-package-agreements --accept-source-agreements --override "/VERYSILENT /NORESTART"',
   installNodeViaNvm: 'cmd /c "nvm install lts && nvm use lts"',
   installGit: 'winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements',
   installClaude: '%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "irm https://claude.ai/install.ps1 | iex"',

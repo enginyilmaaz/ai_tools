@@ -80,7 +80,17 @@ async function checkVSCode() {
 }
 
 async function checkClaudeDesktop() {
-  // Check via AppxPackage (Store/MSIX — most reliable on Windows)
+  // Check Squirrel install (winget installs here)
+  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  const squirrelExe = path.join(localAppData, 'AnthropicClaude', 'claude.exe');
+  if (fs.existsSync(squirrelExe)) {
+    // Try to get version from winget (needs longer timeout for source update)
+    const wingetOut = await runShellCommand('winget list --id Anthropic.Claude', 30000);
+    const match = wingetOut && wingetOut.match(/(\d+\.\d+[\.\d]*)/);
+    return { found: true, version: match ? match[1] : 'installed' };
+  }
+
+  // Check AppxPackage (Store/MSIX install)
   const appxOut = await runShellCommand(
     'powershell -NoProfile -Command "(Get-AppxPackage *claude* | Select -First 1).Version"', 8000
   );
@@ -88,21 +98,11 @@ async function checkClaudeDesktop() {
     return { found: true, version: appxOut.trim() };
   }
 
-  // Fallback: winget
-  const wingetOut = await runShellCommand('winget list --id Anthropic.Claude', 10000);
-  if (wingetOut && wingetOut.includes('Anthropic.Claude')) {
-    const match = wingetOut.match(/(\d+\.\d+[\.\d]*)/);
+  // Fallback: winget only
+  const wingetOut2 = await runShellCommand('winget list --id Anthropic.Claude', 30000);
+  if (wingetOut2 && wingetOut2.includes('Anthropic.Claude')) {
+    const match = wingetOut2.match(/(\d+\.\d+[\.\d]*)/);
     return { found: true, version: match ? match[1] : 'installed' };
-  }
-
-  // Fallback: known file paths (non-Store installs)
-  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
-  const knownExePaths = [
-    path.join(localAppData, 'AnthropicClaude', 'claude.exe'),
-    path.join(localAppData, 'Programs', 'claude', 'claude.exe')
-  ];
-  for (const exePath of knownExePaths) {
-    if (fs.existsSync(exePath)) return { found: true, version: 'installed' };
   }
 
   return { found: false, version: null };
@@ -306,30 +306,14 @@ async function installVSCode(progress) {
 async function installClaudeDesktop(progress) {
   if (await hasWinget()) {
     if (progress) progress('Installing Claude Desktop via winget...');
-    await runShellCommandVerbose(cmd.installClaudeDesktop, 300000);
-    refreshPath();
+    await runShellCommandVerbose(
+      'winget install -e --id Anthropic.Claude --accept-package-agreements --accept-source-agreements', 300000
+    );
     const check = await checkClaudeDesktop();
-    if (check.found) return { success: true, message: 'installed' };
+    if (check.found) return { success: true, message: check.version || 'installed' };
   }
 
-  // Fallback: direct download
-  const url = dl.getUrl('claudeDesktop');
-  if (url) {
-    if (progress) progress('Downloading Claude Desktop...');
-    const tmpPath = path.join(os.tmpdir(), 'ClaudeSetup.exe');
-    const downloadResult = await downloadFile(url, tmpPath);
-    if (downloadResult.success) {
-      const exeResult = await runShellCommandVerbose(`"${tmpPath}"`, 300000);
-      try { fs.unlinkSync(tmpPath); } catch (_) {}
-      const recheck = await checkClaudeDesktop();
-      if (recheck.found) return { success: true, message: 'installed' };
-      return { success: false, message: exeResult.error || 'Claude Desktop installer failed' };
-    } else {
-      return { success: false, message: 'Download failed: ' + (downloadResult.error || 'unknown') };
-    }
-  }
-
-  return { success: false, message: 'Claude Desktop installation failed' };
+  return { success: false, message: 'Claude Desktop installation failed (winget required)' };
 }
 
 async function installExtension(editor, extensionId, progress) {
@@ -354,14 +338,14 @@ async function checkCodexCli() {
 async function checkCodexApp() {
   // Check via AppxPackage (Store/MSIX — most reliable)
   const appxOut = await runShellCommand(
-    'powershell -NoProfile -Command "(Get-AppxPackage *OpenAI.Codex* | Select -First 1).Version"', 8000
+    'powershell -NoProfile -Command "(Get-AppxPackage *OpenAI.Codex* | Select -First 1).Version"', 15000
   );
   if (appxOut && appxOut.match(/\d+\.\d+/)) {
     return { found: true, version: appxOut.trim() };
   }
 
   // Fallback: winget/msstore
-  const out = await runShellCommand('winget list --id 9PLM9XGG6VKS --source msstore', 10000);
+  const out = await runShellCommand('winget list --id 9PLM9XGG6VKS --source msstore', 30000);
   if (out && out.includes('Codex')) {
     const match = out.match(/(\d+[\.\d]*)/);
     return { found: true, version: match ? match[1] : 'installed' };
@@ -380,6 +364,8 @@ async function checkGithubCli() {
 
 async function installCodexCli(progress) {
   if (progress) progress('Installing OpenAI Codex CLI...');
+  injectKnownPaths();
+  refreshPath();
   const result = await runShellCommandVerbose('cmd /c npm install -g @openai/codex', 120000);
   refreshPath();
   const check = await checkCodexCli();
@@ -465,7 +451,7 @@ async function uninstallNode(progress, options) {
       // Get current version before deactivating
       const nodeVer = await runCommand('cmd /c node -v');
       if (nodeVer) {
-        await runShellCommandVerbose(`cmd /c "nvm deactivate && nvm uninstall ${nodeVer.trim()}"`, 30000);
+        await runShellCommandVerbose(`cmd /c "nvm off && nvm uninstall ${nodeVer.trim()}"`, 30000);
       }
     }
   } else {
@@ -555,14 +541,22 @@ async function uninstallVSCode(progress) {
 
 async function uninstallClaudeDesktop(progress) {
   if (progress) progress('Removing Claude Desktop...');
-  const result = await runShellCommandVerbose(
+  // winget uninstall (handles both Squirrel and Store)
+  await runShellCommandVerbose(
     'winget uninstall -e --id Anthropic.Claude --accept-source-agreements', 300000
   );
-  refreshPath();
+  // Fallback: Remove-AppxPackage for Store-only installs
+  await runShellCommand(
+    'powershell -NoProfile -Command "Get-AppxPackage *claude* | Remove-AppxPackage"', 30000
+  );
+  // Clean Squirrel leftovers
+  const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  const squirrelDir = path.join(localAppData, 'AnthropicClaude');
+  try { if (fs.existsSync(squirrelDir)) fs.rmSync(squirrelDir, { recursive: true, force: true }); } catch (_) {}
   const check = await checkClaudeDesktop();
   return !check.found
     ? { success: true, message: 'Removed' }
-    : { success: false, message: result.error || 'Claude Desktop removal failed' };
+    : { success: false, message: 'Claude Desktop removal failed' };
 }
 
 async function uninstallCodexCli(progress) {
@@ -580,14 +574,18 @@ async function uninstallCodexCli(progress) {
 
 async function uninstallCodexApp(progress) {
   if (progress) progress('Removing Codex App...');
-  const result = await runShellCommandVerbose(
+  // Try winget first
+  await runShellCommandVerbose(
     'winget uninstall -e --id 9PLM9XGG6VKS --accept-source-agreements', 300000
   );
-  refreshPath();
+  // Fallback: Remove-AppxPackage for Store installs
+  await runShellCommand(
+    'powershell -NoProfile -Command "Get-AppxPackage *OpenAI.Codex* | Remove-AppxPackage"', 30000
+  );
   const check = await checkCodexApp();
   return !check.found
     ? { success: true, message: 'Removed' }
-    : { success: false, message: result.error || 'Codex App removal failed' };
+    : { success: false, message: 'Codex App removal failed' };
 }
 
 async function uninstallGithubCli(progress) {
@@ -642,16 +640,14 @@ async function prepareElevatedInstall(toolIds, progress) {
 
   for (const id of ids) {
     switch (id) {
-      case 'node':
-        downloadTasks.push({ id, dest: path.join(tmpDir, 'nvm-setup.exe'), url: dl.nvm }); break;
+      // node: NVM installed via winget (no download needed)
       case 'git':
         if (gitUrl) downloadTasks.push({ id, dest: path.join(tmpDir, 'git-installer.exe'), url: gitUrl }); break;
       case 'claude':
         downloadTasks.push({ id, dest: path.join(tmpDir, 'claude-install.cmd'), url: dl.claudeCmd }); break;
       case 'vscode':
         downloadTasks.push({ id, dest: path.join(tmpDir, 'vscode-installer.exe'), url: dl.vscode }); break;
-      case 'claudeDesktop':
-        downloadTasks.push({ id, dest: path.join(tmpDir, 'ClaudeSetup.exe'), url: dl.claudeDesktop }); break;
+      // claudeDesktop: no download needed — uses winget directly
       case 'githubCli':
         if (ghCliUrl) downloadTasks.push({ id, dest: path.join(tmpDir, 'gh-installer.msi'), url: ghCliUrl }); break;
     }
@@ -690,8 +686,7 @@ async function prepareElevatedInstall(toolIds, progress) {
         const nvmExists = fs.existsSync(path.join(nvmHome, 'nvm.exe'));
         const cmds = [];
         if (!nvmExists) {
-          cmds.push('winget uninstall -e --id CoreyButler.NVMforWindows 2>nul');
-          cmds.push(`"${dl.dest}" /VERYSILENT /NORESTART`);
+          cmds.push('winget install -e --id CoreyButler.NVMforWindows --accept-package-agreements --accept-source-agreements --override "/VERYSILENT /NORESTART"');
           cmds.push('timeout /t 5 /nobreak >nul');
         }
         cmds.push(`set "PATH=${nvmHome};${nvmSymlink};%PATH%"`);
@@ -716,14 +711,19 @@ async function prepareElevatedInstall(toolIds, progress) {
       }
       case 'vscode':
         steps.push({ id: 'vscode', command: `"${dl.dest}" /verysilent /mergetasks=!runcode` }); break;
-      case 'claudeDesktop':
-        steps.push({ id: 'claudeDesktop', command: `"${dl.dest}"\r\ntimeout /t 10 /nobreak >nul` }); break;
+      // claudeDesktop handled below (winget, no download)
       case 'githubCli':
         steps.push({ id: 'githubCli', command: `msiexec /i "${dl.dest}" /qn /norestart` }); break;
     }
   }
 
-  // codexApp doesn't need a download
+  // Store/winget apps — no download needed
+  if (ids.includes('claudeDesktop')) {
+    steps.push({
+      id: 'claudeDesktop',
+      command: 'winget install -e --id Anthropic.Claude --accept-package-agreements --accept-source-agreements'
+    });
+  }
   if (ids.includes('codexApp')) {
     steps.push({
       id: 'codexApp',
@@ -818,7 +818,7 @@ async function runBatchUninstall(toolIds, progress) {
         const nvmLink = path.join(process.env.PROGRAMFILES || 'C:\\Program Files', 'nodejs');
         const nvmUninst = path.join(nvmDir, 'unins000.exe');
         steps.push({ id, command: [
-          'nvm deactivate 2>nul',
+          'nvm off 2>nul',
           // Try NVM's own uninstaller first (from setup.exe install)
           `if exist "${nvmUninst}" "${nvmUninst}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART`,
           'timeout /t 3 /nobreak >nul',
@@ -854,10 +854,16 @@ async function runBatchUninstall(toolIds, progress) {
         steps.push({ id, command: 'winget uninstall -e --id Microsoft.VisualStudioCode --accept-source-agreements 2>nul' });
         break;
       case 'claudeDesktop':
-        steps.push({ id, command: 'winget uninstall -e --id Anthropic.Claude --accept-source-agreements 2>nul' });
+        steps.push({ id, command: [
+          'winget uninstall -e --id Anthropic.Claude --accept-source-agreements 2>nul',
+          'powershell -NoProfile -Command "Get-AppxPackage *claude* | Remove-AppxPackage" 2>nul'
+        ].join('\r\n') });
         break;
       case 'codexApp':
-        steps.push({ id, command: 'winget uninstall -e --id 9PLM9XGG6VKS --accept-source-agreements 2>nul' });
+        steps.push({ id, command: [
+          'winget uninstall -e --id 9PLM9XGG6VKS --accept-source-agreements 2>nul',
+          'powershell -NoProfile -Command "Get-AppxPackage *OpenAI.Codex* | Remove-AppxPackage" 2>nul'
+        ].join('\r\n') });
         break;
       case 'githubCli':
         steps.push({ id, command: 'winget uninstall -e --id GitHub.cli --accept-source-agreements 2>nul' });
