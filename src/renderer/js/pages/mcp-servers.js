@@ -460,8 +460,12 @@ window.McpServersPage = {
         var name = item ? this._L(item.nameKey) : d.id;
         if (d.needsLogin) {
             this._toast(this._L('PluginNeedsLogin') || 'Claude CLI Login Required',
-                this._L('PluginNeedsLoginBody') || 'A terminal window will open for login. Plugin install will retry automatically.',
+                this._L('PluginNeedsLoginBody') || 'Open CMD or PowerShell, run claude /login, then try again.',
                 'warning', 10000);
+            this._renderList();
+            if (this._installAllNext) { this._installAllNext = null; }
+            var btn = document.getElementById('mcp-install-all-btn');
+            if (btn) { btn.disabled = false; btn.textContent = this._L('McpInstallSelected') || 'Install Selected'; }
             return;
         }
         if (d.success) {
