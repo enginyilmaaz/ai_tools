@@ -364,7 +364,6 @@ window.SkillsPage = {
 
     _requestTargetInstall: function (target) {
         var L = Bridge.lang.bind(Bridge);
-        var t = this._copy();
         var skills = this._getSelectedSkillIds();
 
         if (!skills.length) {
@@ -377,18 +376,12 @@ window.SkillsPage = {
             return;
         }
 
-        this._confirm(
-            target === 'codex' ? t.confirmCodexTitle : t.confirmClaudeTitle,
-            '<p>' + this._escapeHtml(target === 'codex' ? t.confirmCodexBody : t.confirmClaudeBody) + '</p>',
-            function (yes) {
-                if (!yes) return;
-                this._pendingInstallRequest = { target: target, skills: skills };
-                this._installing = true;
-                this._installingTarget = target;
-                this._updateActions();
-                Bridge.send('checkSkillsTargetPrerequisites', { target: target });
-            }.bind(this)
-        );
+        // Skip second confirm — first confirm dialog already shown by caller
+        this._pendingInstallRequest = { target: target, skills: skills };
+        this._installing = true;
+        this._installingTarget = target;
+        this._updateActions();
+        Bridge.send('checkSkillsTargetPrerequisites', { target: target });
     },
 
     _handleTargetPrereqResult: function (data) {
