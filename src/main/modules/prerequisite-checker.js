@@ -248,16 +248,19 @@ async function installSelectedWindows(sender, sorted, options) {
       }
     } else {
       // Check each tool with retry (installs may need a moment to finalize)
+      // Inject known paths + refresh before first check
       if (platform.refreshPath) platform.refreshPath();
+      if (platform.injectKnownPaths) platform.injectKnownPaths();
       for (const id of elevatedIds) {
         const checkFn = platform[CHECK_FN_MAP[id]];
         let found = false;
         if (checkFn) {
-          for (let attempt = 0; attempt < 3 && !found; attempt++) {
+          for (let attempt = 0; attempt < 5 && !found; attempt++) {
             if (attempt > 0) {
-              log(`[${id}] Retry ${attempt + 1}/3 — refreshing PATH...`);
-              await new Promise(r => setTimeout(r, 3000));
+              log(`[${id}] Retry ${attempt + 1}/5 — refreshing PATH...`);
+              await new Promise(r => setTimeout(r, 5000));
               if (platform.refreshPath) platform.refreshPath();
+              if (platform.injectKnownPaths) platform.injectKnownPaths();
             }
             try {
               const check = await checkFn();

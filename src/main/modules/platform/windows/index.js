@@ -11,7 +11,23 @@ const { WindowsPaths: paths } = require('./paths');
 
 async function checkNode() {
   const out = await runCommand(cmd.checkNode);
-  return out ? { found: true, version: out } : { found: false, version: null };
+  if (out) return { found: true, version: out };
+
+  // Fallback: check NVM symlink dir directly
+  const nvmSymlink = process.env.NVM_SYMLINK || path.join(process.env.PROGRAMFILES || '', 'nodejs');
+  const nodeExe = path.join(nvmSymlink, 'node.exe');
+  if (fs.existsSync(nodeExe)) {
+    const ver = await runCommand(`"${nodeExe}" -v`);
+    return { found: true, version: ver || 'installed' };
+  }
+
+  // Fallback: check if nvm is installed and has a version
+  const nvmOut = await runCommand('cmd /c nvm current');
+  if (nvmOut && nvmOut.trim() !== '' && !nvmOut.includes('No current')) {
+    return { found: true, version: nvmOut.trim() };
+  }
+
+  return { found: false, version: null };
 }
 
 async function checkGit() {
@@ -749,6 +765,22 @@ function addToPath(dir) {
   }
 }
 
+function injectKnownPaths() {
+  const home = os.homedir();
+  [
+    process.env.NVM_HOME || path.join(process.env.APPDATA || '', 'nvm'),
+    path.join(process.env.PROGRAMFILES || '', 'nodejs'),
+    path.join(home, '.local', 'bin'),
+    path.join(home, '.claude', 'local'),
+    path.join(process.env.PROGRAMFILES || '', 'Git', 'cmd'),
+    path.join(process.env.PROGRAMFILES || '', 'GitHub CLI'),
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Microsoft VS Code', 'bin'),
+    path.join(process.env.PROGRAMFILES || '', 'Microsoft VS Code', 'bin'),
+    // NVM symlink dir for node
+    path.join(process.env.NVM_SYMLINK || path.join(process.env.PROGRAMFILES || '', 'nodejs'))
+  ].forEach(addToPath);
+}
+
 // Uninstall batch
 async function runBatchUninstall(toolIds, progress) {
   const elevatedIds = toolIds.filter(id => ELEVATED_TOOLS.has(id));
@@ -847,6 +879,7 @@ module.exports = {
   uninstallGithubCli,
   uninstallExtension,
   refreshPath,
+  injectKnownPaths,
   needsElevation,
   runBatchInstall,
   runBatchUninstall,

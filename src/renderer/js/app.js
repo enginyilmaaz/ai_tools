@@ -1328,7 +1328,7 @@ var App = {
             return;
         }
 
-        var editorNames = { vscode: 'VS Code' };
+        var editorNames = { vscode: 'VS Code', shellAliases: 'Shell Aliases', powershellAliases: 'PowerShell Aliases', cmdAliases: 'CMD Aliases' };
         var editorIcons = { vscode: 'assets/devtools/vscode.png' };
         var html = '';
 
