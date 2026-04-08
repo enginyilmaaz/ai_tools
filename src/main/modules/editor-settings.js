@@ -186,9 +186,10 @@ function applyAllEditorSettings() {
 }
 
 const BASH_ALIASES = {
-  'claude-skip': 'claude --dangerously-skip-permissions',
-  'ccskip': 'claude --dangerously-skip-permissions',
-  'codex-skip': 'codex --full-auto'
+  'claude-skip': 'claude --dangerously-skip-permissions --effort max',
+  'ccskip': 'claude --dangerously-skip-permissions --effort max',
+  'codex-skip': 'codex --sandbox danger-full-access -c model_reasoning_effort="xhigh"',
+  'cxskip': 'codex --sandbox danger-full-access -c model_reasoning_effort="xhigh"'
 };
 
 function applyBashAliases() {
@@ -235,7 +236,7 @@ function cleanupPsProfile() {
   try {
     let content = fs.readFileSync(psProfile, 'utf8');
     // Remove our function definitions
-    const funcs = ['claude-skip', 'ccskip', 'codex-skip'];
+    const funcs = ['claude-skip', 'ccskip', 'codex-skip', 'cxskip'];
     for (const name of funcs) {
       content = content.replace(new RegExp(`function ${name}\\s*\\{[^}]*\\}\\s*\\n?`, 'g'), '');
     }
@@ -299,9 +300,10 @@ function applyCmdAliases() {
   fs.mkdirSync(binDir, { recursive: true });
 
   const CMD_SCRIPTS = {
-    'claude-skip': '@echo off\r\nclaude --dangerously-skip-permissions %*',
-    'ccskip': '@echo off\r\nclaude --dangerously-skip-permissions %*',
-    'codex-skip': '@echo off\r\ncodex --full-auto %*'
+    'claude-skip': '@echo off\r\nclaude --dangerously-skip-permissions --effort max %*',
+    'ccskip': '@echo off\r\nclaude --dangerously-skip-permissions --effort max %*',
+    'codex-skip': '@echo off\r\ncodex --sandbox danger-full-access -c model_reasoning_effort="xhigh" %*',
+    'cxskip': '@echo off\r\ncodex --sandbox danger-full-access -c model_reasoning_effort="xhigh" %*'
   };
 
   const results = [];

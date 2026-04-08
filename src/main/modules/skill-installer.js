@@ -116,7 +116,7 @@ function installSkills(repoPath, selectedSkills, target, logFn) {
   const log = logFn || function () {};
 
   // Backup dir for existing skills
-  const backupDir = path.join(os.tmpdir(), 'ai-skills-backup-' + Date.now());
+  const backupDir = path.join(os.tmpdir(), 'smai-skills-backup-' + Date.now());
 
   for (const skill of selectedSkills) {
     // Try root first, then general-skills/
@@ -300,6 +300,136 @@ function removeHooksForSkills(skillNames, logFn) {
   log('[Hooks] settings.json updated');
 }
 
+function installCodexHooksForSkills(skillNames, repoPath, logFn) {
+  const log = logFn || function () {};
+
+  // Load all available hooks from both root and general-skills hooks.json
+  const allHooks = [];
+  const hookFiles = [
+    path.join(repoPath, 'hooks.json'),
+    path.join(repoPath, 'general-skills', 'hooks.json')
+  ];
+  for (const hooksJsonPath of hookFiles) {
+    if (!fs.existsSync(hooksJsonPath)) continue;
+    try {
+      const data = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
+      if (Array.isArray(data.UserPromptSubmit)) {
+        allHooks.push(...data.UserPromptSubmit);
+      }
+      log(`[CodexHooks] Loaded ${(data.UserPromptSubmit || []).length} hooks from ${hooksJsonPath}`);
+    } catch (err) {
+      log(`[CodexHooks] Failed to parse ${hooksJsonPath}: ${err.message}`);
+    }
+  }
+
+  if (allHooks.length === 0) {
+    log('[CodexHooks] No hooks found, skipping');
+    return;
+  }
+
+  // Build code → hook entry lookup
+  const hooksByCode = {};
+  for (const h of allHooks) {
+    if (h.code) hooksByCode[h.code] = h;
+  }
+
+  const codexHooksPath = path.join(os.homedir(), '.codex', 'hooks.json');
+  let codexConfig = { hooks: { UserPromptSubmit: [] } };
+  if (fs.existsSync(codexHooksPath)) {
+    try {
+      codexConfig = JSON.parse(fs.readFileSync(codexHooksPath, 'utf8'));
+    } catch (_) {
+      codexConfig = { hooks: { UserPromptSubmit: [] } };
+    }
+  }
+
+  if (!codexConfig.hooks) codexConfig.hooks = {};
+  if (!Array.isArray(codexConfig.hooks.UserPromptSubmit)) codexConfig.hooks.UserPromptSubmit = [];
+
+  let added = 0;
+  for (const skillName of skillNames) {
+    const hookCodes = SKILL_HOOK_MAP[skillName];
+    if (!hookCodes) continue;
+
+    for (const hookCode of hookCodes) {
+      const hookEntry = hooksByCode[hookCode];
+      if (!hookEntry || !hookEntry.hooks || !hookEntry.hooks[0]) continue;
+
+      // Check if hook already exists by searching for the skill name in the jq command
+      const alreadyExists = codexConfig.hooks.UserPromptSubmit.some(h => {
+        if (!h.hooks || !h.hooks[0]) return false;
+        const cmd = h.hooks[0].command || '';
+        return cmd.includes(skillName);
+      });
+      if (alreadyExists) {
+        log(`[CodexHooks] ${hookCode} already exists for ${skillName}, skipping`);
+        continue;
+      }
+
+      // Transform to Codex format: change "invoke the X skill using the Skill tool" to "Use the X skill"
+      const sourceHook = JSON.parse(JSON.stringify(hookEntry.hooks[0]));
+      if (sourceHook.command) {
+        sourceHook.command = sourceHook.command.replace(
+          /You MUST invoke the (\S+) skill using the Skill tool BEFORE doing anything else\./g,
+          'Use the $1 skill before doing anything else.'
+        );
+      }
+
+      const codexHookEntry = {
+        hooks: [sourceHook]
+      };
+
+      codexConfig.hooks.UserPromptSubmit.push(codexHookEntry);
+      log(`[CodexHooks] Added ${hookCode} for skill ${skillName}`);
+      added++;
+    }
+  }
+
+  if (added > 0) {
+    fs.mkdirSync(path.dirname(codexHooksPath), { recursive: true });
+    fs.writeFileSync(codexHooksPath, JSON.stringify(codexConfig, null, 2), 'utf8');
+    log(`[CodexHooks] hooks.json updated (${added} hooks added)`);
+  }
+}
+
+function removeCodexHooksForSkills(skillNames, logFn) {
+  const log = logFn || function () {};
+  const codexHooksPath = path.join(os.homedir(), '.codex', 'hooks.json');
+
+  if (!fs.existsSync(codexHooksPath)) {
+    log('[CodexHooks] hooks.json not found, nothing to remove');
+    return;
+  }
+
+  let codexConfig;
+  try {
+    codexConfig = JSON.parse(fs.readFileSync(codexHooksPath, 'utf8'));
+  } catch (err) {
+    log(`[CodexHooks] Failed to parse hooks.json: ${err.message}`);
+    return;
+  }
+
+  if (!codexConfig.hooks || !Array.isArray(codexConfig.hooks.UserPromptSubmit)) {
+    log('[CodexHooks] No UserPromptSubmit hooks found');
+    return;
+  }
+
+  for (const skillName of skillNames) {
+    const before = codexConfig.hooks.UserPromptSubmit.length;
+    codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h => {
+      if (!h.hooks || !h.hooks[0]) return true;
+      const cmd = h.hooks[0].command || '';
+      return !cmd.includes(skillName);
+    });
+    if (codexConfig.hooks.UserPromptSubmit.length < before) {
+      log(`[CodexHooks] Removed hooks for skill ${skillName}`);
+    }
+  }
+
+  fs.writeFileSync(codexHooksPath, JSON.stringify(codexConfig, null, 2), 'utf8');
+  log('[CodexHooks] hooks.json updated');
+}
+
 function removeSkills(skillNames, target, logFn) {
   const log = logFn || function () {};
   const skillsDir = getSkillsDirectory(target);
@@ -314,7 +444,11 @@ function removeSkills(skillNames, target, logFn) {
     }
   }
 
-  removeHooksForSkills(skillNames, logFn);
+  if (target === 'codex') {
+    removeCodexHooksForSkills(skillNames, logFn);
+  } else {
+    removeHooksForSkills(skillNames, logFn);
+  }
   log('[Skills] Reload: restart Claude Code or run /mcp to apply changes');
 }
 
@@ -328,5 +462,7 @@ module.exports = {
   getSkillsDir,
   installHooksForSkills,
   removeHooksForSkills,
+  installCodexHooksForSkills,
+  removeCodexHooksForSkills,
   removeSkills
 };

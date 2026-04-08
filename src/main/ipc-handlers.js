@@ -294,7 +294,11 @@ function handleInstallSkills(sender, data) {
   // Install hooks for successfully installed skills
   const installedSkills = results.filter(r => r.success).map(r => r.name);
   if (installedSkills.length > 0) {
-    skillInstaller.installHooksForSkills(installedSkills, repoDir, log);
+    if (target === 'codex') {
+      skillInstaller.installCodexHooksForSkills(installedSkills, repoDir, log);
+    } else {
+      skillInstaller.installHooksForSkills(installedSkills, repoDir, log);
+    }
   }
 
   sender.send('bridge-reply', {

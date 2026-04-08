@@ -103,9 +103,6 @@ window.SkillsPage = {
     },
 
     _getGroups: function () {
-        var self = this;
-
-        // Split general skills into two columns
         var allGeneral = (this._getResolvedItems ? this._getResolvedItems() : []);
         var half = Math.ceil(allGeneral.length / 2);
         var leftIds = {};
@@ -554,11 +551,26 @@ window.SkillsPage = {
                     groups.map(this._renderGroupCard.bind(this)).join('') +
                 '</div>' +
                 '<div id="skills-catalog-empty" class="skills-empty hidden">' + this._escapeHtml(t.noResult) + '</div>' +
-                '<div style="display:flex;justify-content:flex-end;padding:8px 0 30px">' +
+                '<div style="display:flex;justify-content:flex-end;gap:8px;padding:8px 0 30px">' +
+                    '<div class="split-btn-group" id="skills-codex-split-group">' +
+                        '<button class="btn btn-primary split-btn-main skills-target-btn" id="skills-install-codex-btn" style="background:#333">' +
+                            '<img src="assets/devtools/openai-symbol.svg" style="width:16px;height:16px;filter:brightness(0) invert(1)" alt=""> ' +
+                            (Bridge.lang('SkillsAddSelectedToCodex') || 'Add to Codex') +
+                        '</button>' +
+                        '<button id="skills-codex-split-toggle" class="btn btn-primary split-btn-toggle" style="background:#333">' +
+                            '<span class="mi">arrow_drop_down</span>' +
+                        '</button>' +
+                        '<div id="skills-codex-split-menu" class="split-btn-menu">' +
+                            '<button class="split-btn-menu-item" id="skills-remove-codex-btn">' +
+                                '<img src="assets/devtools/openai-symbol.svg" style="width:14px;height:14px;margin-right:4px" alt=""> ' +
+                                '<span>' + (Bridge.lang('SkillsRemoveSelectedFromCodex') || 'Remove from Codex') + '</span>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
                     '<div class="split-btn-group" id="skills-split-group">' +
                         '<button class="btn btn-primary split-btn-main skills-target-btn" id="skills-install-claude-btn">' +
                             '<img src="assets/devtools/claude.svg" style="width:16px;height:16px;filter:brightness(0) invert(1)" alt=""> ' +
-                            (Bridge.lang('SkillsAddSelectedToClaude') || 'Add Selected to Claude') +
+                            (Bridge.lang('SkillsAddSelectedToClaude') || 'Add to Claude') +
                         '</button>' +
                         '<button id="skills-split-toggle" class="btn btn-primary split-btn-toggle">' +
                             '<span class="mi">arrow_drop_down</span>' +
@@ -566,7 +578,7 @@ window.SkillsPage = {
                         '<div id="skills-split-menu" class="split-btn-menu">' +
                             '<button class="split-btn-menu-item" id="skills-remove-selected-btn">' +
                                 '<img src="assets/devtools/claude.svg" style="width:14px;height:14px;margin-right:4px" alt=""> ' +
-                                '<span>' + (Bridge.lang('SkillsRemoveSelectedFromClaude') || 'Remove Selected from Claude') + '</span>' +
+                                '<span>' + (Bridge.lang('SkillsRemoveSelectedFromClaude') || 'Remove from Claude') + '</span>' +
                             '</button>' +
                         '</div>' +
                     '</div>' +
@@ -604,7 +616,50 @@ window.SkillsPage = {
         var guideBtn = document.getElementById('skills-guide-btn');
         if (guideBtn) guideBtn.addEventListener('click', function () { Bridge.send('openSkillUsage'); });
 
-        // Split dropdown toggle
+        // Codex split dropdown toggle
+        var codexSplitGroup = document.getElementById('skills-codex-split-group');
+        var codexSplitToggle = document.getElementById('skills-codex-split-toggle');
+        if (codexSplitToggle && codexSplitGroup) {
+            codexSplitToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                codexSplitGroup.classList.toggle('show');
+            });
+            document.addEventListener('click', function (e) {
+                if (!codexSplitGroup.contains(e.target)) codexSplitGroup.classList.remove('show');
+            });
+        }
+
+        // Add to Codex
+        var codexBtn = document.getElementById('skills-install-codex-btn');
+        if (codexBtn) {
+            codexBtn.addEventListener('click', function () {
+                if (codexSplitGroup) codexSplitGroup.classList.remove('show');
+                var skills = self._getSelectedSkillIds();
+                if (!skills.length) return;
+                self._confirm(
+                    Bridge.lang('SkillsConfirmAddCodexTitle') || 'Add to Codex',
+                    (Bridge.lang('SkillsConfirmAddCodexBody') || 'Install selected skills to Codex?') + '<br><br><b>' + skills.join(', ') + '</b>',
+                    function (ok) { if (ok) self._requestTargetInstall('codex'); }
+                );
+            });
+        }
+
+        // Remove from Codex
+        var removeCodexBtn = document.getElementById('skills-remove-codex-btn');
+        if (removeCodexBtn) {
+            removeCodexBtn.addEventListener('click', function () {
+                if (codexSplitGroup) codexSplitGroup.classList.remove('show');
+                var skills = self._getSelectedSkillIds();
+                if (!skills.length) return;
+                self._confirm(
+                    Bridge.lang('SkillsConfirmRemoveTitle') || 'Remove Skills',
+                    (Bridge.lang('SkillsRemoveSelectedFromCodex') || 'Remove selected skills from Codex?') + '<br><br><b>' + skills.join(', ') + '</b>',
+                    function (ok) { if (ok) Bridge.send('removeSkills', { skills: skills, target: 'codex' }); }
+                );
+            });
+        }
+
+        // Claude split dropdown toggle
         var skillsSplitGroup = document.getElementById('skills-split-group');
         var skillsSplitToggle = document.getElementById('skills-split-toggle');
         if (skillsSplitToggle && skillsSplitGroup) {
