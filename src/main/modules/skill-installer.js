@@ -3,7 +3,32 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { execFileSync } = require('child_process');
 const { getPaths } = require('./platform');
+
+function ensureJqInstalled(log) {
+  // Check if jq is available
+  try {
+    const cmd = process.platform === 'win32' ? 'where' : 'which';
+    execFileSync(cmd, ['jq'], { timeout: 3000, windowsHide: true });
+    return; // jq found
+  } catch (_) {}
+
+  log('[Hooks] jq not found — installing (required for auto-trigger hooks)...');
+  try {
+    if (process.platform === 'win32') {
+      execFileSync('winget', ['install', '-e', '--id', 'jqlang.jq',
+        '--accept-package-agreements', '--accept-source-agreements'],
+        { timeout: 60000, windowsHide: true });
+    } else {
+      execFileSync('sudo', ['apt-get', 'install', '-y', 'jq'],
+        { timeout: 30000 });
+    }
+    log('[Hooks] jq installed successfully');
+  } catch (err) {
+    log('[Hooks] WARNING: jq install failed — hooks may not work. Install jq manually.');
+  }
+}
 
 const HOOK_SKILL_MAP = {
   'GEN_HOOK_COMMIT': 'commit',
@@ -214,6 +239,9 @@ function installHooksForSkills(skillNames, repoPath, logFn) {
     return;
   }
 
+  // Ensure jq is installed (hooks require it)
+  ensureJqInstalled(log);
+
   // Build code → hook entry lookup
   const hooksByCode = {};
   for (const h of allHooks) {
@@ -242,14 +270,20 @@ function installHooksForSkills(skillNames, repoPath, logFn) {
       const hookEntry = hooksByCode[hookCode];
       if (!hookEntry) continue;
 
-      const alreadyExists = settings.hooks.UserPromptSubmit.some(h => h.code === hookCode);
-      if (alreadyExists) {
-        log(`[Hooks] ${hookCode} already exists, skipping`);
-        continue;
-      }
+      // Remove existing hook with same code (upsert — always replace with latest)
+      settings.hooks.UserPromptSubmit = settings.hooks.UserPromptSubmit.filter(h => h.code !== hookCode);
 
-      settings.hooks.UserPromptSubmit.push(hookEntry);
-      log(`[Hooks] Added ${hookCode} for skill ${skillName}`);
+      // Build fixed entry with code property + jq fix
+      const fixedEntry = JSON.parse(JSON.stringify(hookEntry));
+      fixedEntry.code = hookCode;
+      if (fixedEntry.hooks && fixedEntry.hooks[0] && fixedEntry.hooks[0].command) {
+        fixedEntry.hooks[0].command = fixedEntry.hooks[0].command
+          .replace(/else \{\} end/g, 'else empty end')
+          .replace(/N\\[+]1/g, 'N[+]1')   // fix invalid jq escape
+          .replace(/N\\\+1/g, 'N[+]1');
+      }
+      settings.hooks.UserPromptSubmit.push(fixedEntry);
+      log(`[Hooks] Upserted ${hookCode} for skill ${skillName}`);
       added++;
     }
   }
@@ -327,6 +361,8 @@ function installCodexHooksForSkills(skillNames, repoPath, logFn) {
     return;
   }
 
+  ensureJqInstalled(log);
+
   // Build code → hook entry lookup
   const hooksByCode = {};
   for (const h of allHooks) {
@@ -355,32 +391,24 @@ function installCodexHooksForSkills(skillNames, repoPath, logFn) {
       const hookEntry = hooksByCode[hookCode];
       if (!hookEntry || !hookEntry.hooks || !hookEntry.hooks[0]) continue;
 
-      // Check if hook already exists by searching for the skill name in the jq command
-      const alreadyExists = codexConfig.hooks.UserPromptSubmit.some(h => {
-        if (!h.hooks || !h.hooks[0]) return false;
-        const cmd = h.hooks[0].command || '';
-        return cmd.includes(skillName);
-      });
-      if (alreadyExists) {
-        log(`[CodexHooks] ${hookCode} already exists for ${skillName}, skipping`);
-        continue;
-      }
+      // Remove existing hook with same code (upsert)
+      codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h => h.code !== hookCode);
 
-      // Transform to Codex format: change "invoke the X skill using the Skill tool" to "Use the X skill"
+      // Transform to Codex format + fix jq + add code property
       const sourceHook = JSON.parse(JSON.stringify(hookEntry.hooks[0]));
       if (sourceHook.command) {
-        sourceHook.command = sourceHook.command.replace(
-          /You MUST invoke the (\S+) skill using the Skill tool BEFORE doing anything else\./g,
-          'Use the $1 skill before doing anything else.'
-        );
+        sourceHook.command = sourceHook.command
+          .replace(/You MUST invoke the (\S+) skill using the Skill tool BEFORE doing anything else\./g, 'Use the $1 skill before doing anything else.')
+          .replace(/else \{\} end/g, 'else empty end');
       }
 
       const codexHookEntry = {
+        code: hookCode,
         hooks: [sourceHook]
       };
 
       codexConfig.hooks.UserPromptSubmit.push(codexHookEntry);
-      log(`[CodexHooks] Added ${hookCode} for skill ${skillName}`);
+      log(`[CodexHooks] Upserted ${hookCode} for skill ${skillName}`);
       added++;
     }
   }
@@ -415,14 +443,15 @@ function removeCodexHooksForSkills(skillNames, logFn) {
   }
 
   for (const skillName of skillNames) {
-    const before = codexConfig.hooks.UserPromptSubmit.length;
-    codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h => {
-      if (!h.hooks || !h.hooks[0]) return true;
-      const cmd = h.hooks[0].command || '';
-      return !cmd.includes(skillName);
-    });
-    if (codexConfig.hooks.UserPromptSubmit.length < before) {
-      log(`[CodexHooks] Removed hooks for skill ${skillName}`);
+    const hookCodes = SKILL_HOOK_MAP[skillName];
+    if (!hookCodes) continue;
+
+    for (const hookCode of hookCodes) {
+      const before = codexConfig.hooks.UserPromptSubmit.length;
+      codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h => h.code !== hookCode);
+      if (codexConfig.hooks.UserPromptSubmit.length < before) {
+        log(`[CodexHooks] Removed ${hookCode} for skill ${skillName}`);
+      }
     }
   }
 
