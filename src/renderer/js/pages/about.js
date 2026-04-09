@@ -16,7 +16,7 @@ window.AboutPage = {
                 '<div class="subpage-scroll about-shell">' +
                     '<div class="about-content">' +
                         '<div class="about-app-name">' + (L('AppName') || 'AI Tool') + '</div>' +
-                        '<img src="assets/header-light.png" class="about-app-icon" data-theme-light-src="assets/header-light.png" data-theme-dark-src="assets/header-dark.png" alt="">' +
+                        '<img src="assets/app-icon.png" class="about-app-icon" alt="">' +
                         '<div class="about-row">' +
                             '<span class="about-label">' + (L('AboutVersion') || 'Version') + '</span>' +
                             '<span class="about-value">' + version + '</span>' +
