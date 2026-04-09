@@ -97,9 +97,9 @@ function syncWindowMaximizeState(win) {
 function getAppIconPath() {
   const base = path.join(__dirname, '..', 'renderer', 'assets');
   if (process.platform === 'win32') {
-    return path.join(base, 'app.ico');
+    return path.join(base, 'app-icon.ico');
   }
-  return path.join(base, 'app.png');
+  return path.join(base, 'app-icon.png');
 }
 
 // Install icon to system icon directories on Linux so desktop/taskbar can show it
@@ -110,7 +110,7 @@ function installLinuxSystemIcon() {
   const localIcons = path.join(os.homedir(), '.local', 'share', 'icons', 'hicolor', '256x256', 'apps');
   const pixmaps = path.join(os.homedir(), '.local', 'share', 'pixmaps');
 
-  const iconSrc = path.join(base, 'app.png');
+  const iconSrc = path.join(base, 'app-icon.png');
   if (!fs.existsSync(iconSrc)) return;
 
   const targets = [

@@ -30,7 +30,7 @@
     ],
     "asar": true,
     "win": {
-      "icon": "src/renderer/assets/app.ico",
+      "icon": "src/renderer/assets/app-icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -55,12 +55,12 @@
       "createStartMenuShortcut": true,
       "artifactName": "${productName} Setup ${version}.${ext}",
       "shortcutName": "AI Tool",
-      "installerIcon": "src/renderer/assets/app.ico",
-      "uninstallerIcon": "src/renderer/assets/app.ico"
+      "installerIcon": "src/renderer/assets/app-icon.ico",
+      "uninstallerIcon": "src/renderer/assets/app-icon.ico"
     },
     "linux": {
       "executableName": "ai-tool",
-      "icon": "src/renderer/assets/app.png",
+      "icon": "src/renderer/assets/app-icon.png",
       "executableArgs": [
         "--no-sandbox"
       ],
