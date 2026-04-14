@@ -1,0 +1,4 @@
+[submodule "src/skills"]
+	path = src/skills
+	url = https://github.com/enginyilmaaz/general_ai_skills.git
+	branch = main
