@@ -1,4 +1,0 @@
-[submodule "src/skills"]
-	path = src/skills
-	url = https://github.com/smartmarine/sm_ai_skills.git
-	branch = main
