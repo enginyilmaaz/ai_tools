@@ -82,26 +82,10 @@ function getSkillsRepoCandidates() {
     } catch (_) {}
   }
 
-  // 1. Bundled (production) — inside asar
-  const appRoot = path.join(__dirname, '..', '..');
-  add(path.join(appRoot, 'skills'));
-  add(path.join(appRoot, 'Skills'));
-
-  // 2. Dev — relative to project root
+  // Only read from src/skills (bundled submodule). No external fallbacks.
   const projectRoot = path.join(__dirname, '..', '..', '..');
   add(path.join(projectRoot, 'src', 'skills'));
   add(path.join(projectRoot, 'src', 'Skills'));
-
-  // 3. Parent directories
-  add(path.join(projectRoot, '..', 'claude-skills'));
-  add(path.join(projectRoot, '..', '.claude', 'skills'));
-
-  // 4. User locations
-  const home = os.homedir();
-  add(path.join(home, '.claude', 'skills'));
-  add(path.join(home, 'claude-skills'));
-  add(path.join(home, 'Documents', 'claude-skills'));
-  add(path.join(home, 'Desktop', 'claude-skills'));
 
   return result;
 }
