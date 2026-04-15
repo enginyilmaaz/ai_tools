@@ -78,6 +78,12 @@ if (window.api) {
             Bridge._language = msg.data.language || {};
             Bridge._langCode = msg.data.langCode || 'en';
             Bridge._emit('languageChanged', msg.data);
+        } else if (msg.type === 'projectScanUpdate') {
+            // Deferred scanner result — backfill init data so pages opened
+            // later see the same shape as before the deferral, and also
+            // emit for anyone listening live.
+            if (Bridge._initData) Bridge._initData.projectScan = msg.data;
+            Bridge._emit('projectScanUpdate', msg.data);
         } else {
             Bridge._emit(msg.type, msg.data);
         }

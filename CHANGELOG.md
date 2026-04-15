@@ -1,6 +1,11 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.7 - 2026-04-15
+- feat: Recommended Settings subpage replaces editor-settings flow — per-key VS Code apply/revert, per-alias bash/cmd, Windows HKCU context-menu writer, Linux Nautilus context-menu (python3-nautilus) with restart support
+- feat: Nautilus context menu integration — claude/codex/vscode entries with theme icons, bash -ic profile sourcing, subwindow restore after restart, PID-based kill with pkexec restart
+- perf: disable GPU compositing on Windows/macOS when running inside a VM (VMware/VirtualBox/Hyper-V/Parallels/QEMU)
+
 ## v2.0.6 - 2026-04-06
 - feat: plugin install checks Claude CLI login status, opens terminal for login, auto-retries after 10 seconds
 

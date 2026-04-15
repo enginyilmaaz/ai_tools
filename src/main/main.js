@@ -10,6 +10,37 @@ if (process.platform === 'linux') {
   app.commandLine.appendSwitch('enable-transparent-visuals');
   app.disableHardwareAcceleration();
 }
+
+// Detect virtualised environments on Windows/macOS and disable hardware
+// acceleration there too. Chromium's half-accelerated / half-software GPU
+// path inside a VM (VMware SVGA, VirtualBox Chromium driver, etc.) is
+// slower and flakier than pure software rendering.
+(function maybeDisableHwAccelInVm() {
+  if (process.platform !== 'win32' && process.platform !== 'darwin') return;
+  let inVm = false;
+  try {
+    if (process.platform === 'win32') {
+      const vendor = (process.env.COMPUTERNAME || '').toLowerCase();
+      const procArch = (process.env.PROCESSOR_IDENTIFIER || '').toLowerCase();
+      if (/vmware|virtualbox|hyperv|parallels|qemu/.test(vendor + ' ' + procArch)) inVm = true;
+      if (!inVm && process.env.SYSTEMROOT) {
+        const drivers = [
+          path.join(process.env.SYSTEMROOT, 'System32', 'drivers', 'vmhgfs.sys'),
+          path.join(process.env.SYSTEMROOT, 'System32', 'drivers', 'VBoxGuest.sys'),
+          path.join(process.env.SYSTEMROOT, 'System32', 'drivers', 'prl_fs.sys')
+        ];
+        for (const d of drivers) {
+          try { if (fs.existsSync(d)) { inVm = true; break; } } catch (_) {}
+        }
+      }
+    } else if (process.platform === 'darwin') {
+      const vendor = (process.env.HOSTNAME || '').toLowerCase();
+      if (/vmware|virtualbox|parallels|qemu/.test(vendor)) inVm = true;
+    }
+  } catch (_) {}
+  if (inVm) app.disableHardwareAcceleration();
+})();
+
 const { registerIpcHandlers, setCreateSubWindow, setMainWindow } = require('./ipc-handlers');
 const logger = require('./shared/logger');
 
@@ -312,6 +343,7 @@ function createSubWindow(pageName) {
   else if (pageName === 'skill-usage') { winWidth = 1180; winHeight = 700; }
   else if (pageName === 'skills') { winWidth = 660; winHeight = 660; }
   else if (pageName === 'mcp-servers') { winWidth = 725; winHeight = 590; }
+  else if (pageName === 'recommended-settings') { winWidth = 795; winHeight = 590; }
   else if (pageName === 'dev-tools') { winWidth = 520; winHeight = process.platform === 'win32' ? 690 : 610; }
   else { winWidth = 900; winHeight = 700; }
 

@@ -12,7 +12,8 @@
         skills: { scriptPath: 'js/pages/skills.js', globalName: 'SkillsPage' },
         'mcp-guide': { scriptPath: 'js/pages/mcp-guide.js', globalName: 'McpGuidePage' },
         'mcp-servers': { scriptPath: 'js/pages/mcp-servers.js', globalName: 'McpServersPage' },
-        'dev-tools': { scriptPath: 'js/pages/dev-tools.js', globalName: 'DevToolsPage' }
+        'dev-tools': { scriptPath: 'js/pages/dev-tools.js', globalName: 'DevToolsPage' },
+        'recommended-settings': { scriptPath: 'js/pages/recommended-settings.js', globalName: 'RecommendedSettingsPage' }
     };
 
     function getPage(page) {
@@ -132,8 +133,8 @@
 
     function syncPageLayoutClass() {
         if (!document.body) return;
-        var footerLayoutActive = pageName === 'about' || pageName === 'best-practices' || pageName === 'skill-usage' || pageName === 'skills' || pageName === 'mcp-guide' || pageName === 'mcp-servers' || pageName === 'dev-tools';
-        document.body.classList.toggle('best-practices-page-active', pageName === 'best-practices' || pageName === 'skill-usage' || pageName === 'skills' || pageName === 'mcp-guide' || pageName === 'mcp-servers' || pageName === 'dev-tools');
+        var footerLayoutActive = pageName === 'about' || pageName === 'best-practices' || pageName === 'skill-usage' || pageName === 'skills' || pageName === 'mcp-guide' || pageName === 'mcp-servers' || pageName === 'dev-tools' || pageName === 'recommended-settings';
+        document.body.classList.toggle('best-practices-page-active', pageName === 'best-practices' || pageName === 'skill-usage' || pageName === 'skills' || pageName === 'mcp-guide' || pageName === 'mcp-servers' || pageName === 'dev-tools' || pageName === 'recommended-settings');
         document.body.classList.toggle('footer-layout-active', footerLayoutActive);
     }
 

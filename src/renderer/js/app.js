@@ -182,7 +182,10 @@ var App = {
         });
         // Walkthrough buttons
         var wtApplySettings = document.getElementById('wt-apply-settings');
-        if (wtApplySettings) wtApplySettings.addEventListener('click', function () { self._applyEditorSettings(); });
+        if (wtApplySettings) {
+            wtApplySettings.setAttribute('title', Bridge.lang('QuickAccessApplySettingsTooltip') || 'Open Recommended Settings page');
+            wtApplySettings.addEventListener('click', function () { Bridge.send('openRecommendedSettings'); });
+        }
         var wtDevTools = document.getElementById('wt-dev-tools');
         if (wtDevTools) wtDevTools.addEventListener('click', function () { Bridge.send('openDevTools'); });
         var wtBp = document.getElementById('wt-best-practices');
@@ -565,9 +568,6 @@ var App = {
             var fail = results.length - ok;
             self._onUninstallComplete(ok, fail);
         });
-
-        Bridge.on('editorSettingsInfo', function (d) { self._showEditorSettingsConfirm(d); });
-        Bridge.on('editorSettingsApplied', function (d) { self._onEditorSettingsApplied(d); });
 
         Bridge.on('installSkillsResult', function (d) { self._showResult(d); });
         Bridge.on('log', function (d) { self.log(d.message); });
@@ -1064,8 +1064,15 @@ var App = {
         if (appLoadedText === 'LogAppLoaded') appLoadedText = 'App loaded';
         this.log(appLoadedText + ' v' + version);
         this._startupLogged = true;
+        // Defer the dev-tools prereq check by 3s so the main window
+        // gets a chance to finish laying out before we start spawning
+        // version-probe subprocesses. Guard with the same flags so a
+        // manual re-check isn't debounced.
         if (!this._hasCheckedPrereqs && !this._isCheckingPrereqs) {
-            this._checkAll();
+            var self = this;
+            setTimeout(function () {
+                if (!self._hasCheckedPrereqs && !self._isCheckingPrereqs) self._checkAll();
+            }, 3000);
         }
     },
 
@@ -1313,78 +1320,6 @@ var App = {
 
         if (this._systemInfo) this._showSystemInfo(this._systemInfo);
         try { this._updateCount(); } catch (_) {}
-    },
-
-    // ── Editor Settings ──
-    _applyEditorSettings: function () {
-        Bridge.send('getEditorSettings');
-    },
-
-    _showEditorSettingsConfirm: function (editors) {
-        var self = this;
-        var editorKeys = Object.keys(editors);
-        if (editorKeys.length === 0) {
-            Toast.show(L('CommonInfo'), L('SettingsNoEditors'), 'warning');
-            return;
-        }
-
-        var editorNames = { vscode: 'VS Code', shellAliases: 'Shell Aliases', powershellAliases: 'PowerShell Aliases', cmdAliases: 'CMD Aliases' };
-        var editorIcons = { vscode: 'assets/devtools/vscode.png' };
-        var html = '';
-
-        for (var i = 0; i < editorKeys.length; i++) {
-            var editor = editorKeys[i];
-            var settings = editors[editor];
-            html += '<div style="margin-bottom:12px;">';
-            var iconSrc = editorIcons[editor];
-            var iconTag = iconSrc ? '<img src="' + iconSrc + '" style="width:12px;height:12px;vertical-align:middle;margin-right:5px;border-radius:2px;">' : '';
-            html += '<div style="font-weight:600;margin-bottom:6px;display:flex;align-items:center;">' + iconTag + self._escapeHtml(editorNames[editor] || editor) + ':</div>';
-            var settingKeys = Object.keys(settings);
-            for (var j = 0; j < settingKeys.length; j++) {
-                var key = settingKeys[j];
-                var info = settings[key];
-                if (info.alreadyApplied) {
-                    html += '<div style="color:var(--text-faint);padding:2px 0;"><span style="margin-right:4px;">\u2713</span>' +
-                        self._escapeHtml(info.label) + ': ' + L('SettingsAlreadyApplied') + '</div>';
-                } else {
-                    var curDisplay = info.currentValue === undefined ? 'Not set' : String(info.currentValue);
-                    var newDisplay = String(info.newValue);
-                    html += '<div style="padding:2px 0;color:var(--accent);"><span style="margin-right:4px;">\u2192</span>' +
-                        self._escapeHtml(info.label) + ': ' +
-                        '<span style="text-decoration:line-through;opacity:0.7;">' + self._escapeHtml(curDisplay) + '</span>' +
-                        ' \u2192 <b>' + self._escapeHtml(newDisplay) + '</b></div>';
-                }
-            }
-            html += '</div>';
-        }
-
-        Confirm.show(L('SettingsConfirmTitle'), html, function (ok) {
-            if (ok) {
-                Bridge.send('applyEditorSettings');
-            }
-        });
-    },
-
-    _onEditorSettingsApplied: function (results) {
-        var editorNames = { vscode: 'VS Code' };
-        var allOk = true;
-        var msgs = [];
-        var keys = Object.keys(results);
-        for (var i = 0; i < keys.length; i++) {
-            var editor = keys[i];
-            var r = results[editor];
-            if (r.success) {
-                msgs.push((editorNames[editor] || editor) + ': OK');
-            } else {
-                allOk = false;
-                msgs.push((editorNames[editor] || editor) + ': ' + (r.message || 'Failed'));
-            }
-        }
-        if (allOk) {
-            Toast.show(L('CommonInfo'), L('SettingsApplied'), 'success');
-        } else {
-            Toast.show(L('CommonError'), msgs.join(', '), 'error');
-        }
     },
 
     // Called from the host bridge after checks complete

@@ -7,7 +7,7 @@ const skillInstaller = require('./modules/skill-installer');
 const prerequisiteChecker = require('./modules/prerequisite-checker');
 const mcpManager = require('./modules/mcp-manager');
 const pluginManager = require('./modules/plugin-manager');
-const editorSettings = require('./modules/editor-settings');
+const recommendedSettings = require('./modules/recommended-settings');
 const { getPaths } = require('./modules/platform');
 
 let _createSubWindow = null;
@@ -211,17 +211,30 @@ function registerIpcHandlers() {
         if (_createSubWindow) _createSubWindow('dev-tools');
         break;
 
+      case 'openRecommendedSettings':
+        if (_createSubWindow) _createSubWindow('recommended-settings');
+        break;
+
+      // ==================== Recommended Settings ====================
+      case 'getRecommendedSettings':
+        handleGetRecommendedSettings(sender);
+        break;
+
+      case 'applyRecommendedSettings':
+        handleApplyRecommendedSettings(sender, data);
+        break;
+
+      case 'revertRecommendedSettings':
+        handleRevertRecommendedSettings(sender, data);
+        break;
+
+      case 'restartFileManager':
+        logToMain('[rs-restart] IPC received');
+        handleRestartFileManager(sender);
+        break;
+
       case 'openMcpHelp':
         handleOpenMcpHelp(sender);
-        break;
-
-      // ==================== Editor Settings ====================
-      case 'getEditorSettings':
-        handleGetEditorSettings(sender);
-        break;
-
-      case 'applyEditorSettings':
-        handleApplyEditorSettings(sender);
         break;
 
       // ==================== Language ====================
@@ -378,20 +391,69 @@ function handleOpenMcpHelp(sender) {
   }
 }
 
-function handleGetEditorSettings(sender) {
-  const info = editorSettings.getEditorSettingsInfo();
-  sender.send('bridge-reply', {
-    type: 'editorSettingsInfo',
-    data: info
-  });
+function handleGetRecommendedSettings(sender) {
+  try {
+    const status = recommendedSettings.getStatus();
+    sender.send('bridge-reply', { type: 'recommendedSettingsStatus', data: status });
+  } catch (err) {
+    sender.send('bridge-reply', { type: 'recommendedSettingsStatus', data: { error: err.message } });
+  }
 }
 
-function handleApplyEditorSettings(sender) {
-  const results = editorSettings.applyAllEditorSettings();
-  sender.send('bridge-reply', {
-    type: 'editorSettingsApplied',
-    data: results
-  });
+async function handleApplyRecommendedSettings(sender, data) {
+  const ids = (data && Array.isArray(data.ids)) ? data.ids : [];
+  const onItem = (r) => sender.send('bridge-reply', { type: 'recommendedSettingResult', data: r });
+  const logger = (message) => {
+    const msg = '[rs-apply] ' + (typeof message === 'string' ? message : JSON.stringify(message));
+    console.log(msg);
+    logToMain(msg);
+  };
+  logger('batch start ids=' + JSON.stringify(ids));
+  try {
+    const summary = await recommendedSettings.applyMany(ids, onItem, logger);
+    logger('batch done ' + JSON.stringify(summary));
+    sender.send('bridge-reply', { type: 'recommendedSettingsBatchDone', data: { mode: 'apply', ...summary } });
+  } catch (err) {
+    logger('batch error ' + err.message);
+    sender.send('bridge-reply', { type: 'recommendedSettingsBatchDone', data: { mode: 'apply', error: err.message } });
+  }
+}
+
+function handleRevertRecommendedSettings(sender, data) {
+  const ids = (data && Array.isArray(data.ids)) ? data.ids : [];
+  const onItem = (r) => sender.send('bridge-reply', { type: 'recommendedSettingResult', data: r });
+  const log = (msg) => { const m = '[rs-revert] ' + msg; console.log(m); logToMain(m); };
+  log('batch start ids=' + JSON.stringify(ids));
+  try {
+    const summary = recommendedSettings.revertMany(ids, onItem);
+    log('batch done ' + JSON.stringify(summary));
+    sender.send('bridge-reply', { type: 'recommendedSettingsBatchDone', data: { mode: 'revert', ...summary } });
+  } catch (err) {
+    log('batch error ' + err.message);
+    sender.send('bridge-reply', { type: 'recommendedSettingsBatchDone', data: { mode: 'revert', error: err.message } });
+  }
+}
+
+async function handleRestartFileManager(sender) {
+  // Direct logger — writes to both the main-window log panel (via logToMain)
+  // AND the triggering subwindow. No dependency on wrapSenderWithMainLog,
+  // which we've seen fail silently in some Electron runtime configurations.
+  const logger = (message) => {
+    const msg = '[rs-restart] ' + message;
+    console.log(msg);
+    logToMain(msg);
+    try { sender.send('bridge-reply', { type: 'log', data: { message: msg } }); } catch (_) {}
+  };
+  logger('handler entered');
+  try {
+    const ctxMenus = require('./modules/recommended-settings/context-menus');
+    const result = await ctxMenus.restartFileManager(logger);
+    logger('result: ' + JSON.stringify(result));
+    sender.send('bridge-reply', { type: 'fileManagerRestartResult', data: result });
+  } catch (err) {
+    logger('handler threw: ' + err.message);
+    sender.send('bridge-reply', { type: 'fileManagerRestartResult', data: { success: false, message: err.message } });
+  }
 }
 
 module.exports = { registerIpcHandlers, setCreateSubWindow, setMainWindow };

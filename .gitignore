@@ -8,5 +8,7 @@ obj/
 
 .idea/
 .DS_Store
+__pycache__/
+*.pyc
 Thumbs.db
 .playwright-mcp/
