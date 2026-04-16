@@ -77,7 +77,7 @@ def _run_gui(_mi, cmd, path):
 
 class SmaiContextMenus(GObject.GObject, Nautilus.MenuProvider):
 
-    def _items_for_path(self, path):
+    def _items_for_path(self, path, name_suffix=''):
         if not path:
             return []
         enabled = _read_enabled()
@@ -85,7 +85,7 @@ class SmaiContextMenus(GObject.GObject, Nautilus.MenuProvider):
         for flag, name, label, cmd, in_terminal in ACTIONS:
             if not enabled.get(flag):
                 continue
-            mi = Nautilus.MenuItem(name=name, label=label, tip='')
+            mi = Nautilus.MenuItem(name=name + name_suffix, label=label, tip='')
             if in_terminal:
                 mi.connect('activate', _run_in_terminal, cmd, path)
             else:
@@ -108,7 +108,7 @@ class SmaiContextMenus(GObject.GObject, Nautilus.MenuProvider):
             path = f.get_location().get_path()
         except Exception:
             return []
-        return self._items_for_path(path)
+        return self._items_for_path(path, '_Sel')
 
     def get_background_items(self, *args):
         folder = args[-1] if args else None
@@ -118,4 +118,4 @@ class SmaiContextMenus(GObject.GObject, Nautilus.MenuProvider):
             path = folder.get_location().get_path()
         except Exception:
             return []
-        return self._items_for_path(path)
+        return self._items_for_path(path, '_Bg')
