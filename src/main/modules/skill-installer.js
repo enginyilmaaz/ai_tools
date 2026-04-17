@@ -196,89 +196,6 @@ function getSkillsDir(target) {
   return getSkillsDirectory(target);
 }
 
-function installHooksForSkills(skillNames, repoPath, logFn) {
-  const log = logFn || function () {};
-
-  // Load all available hooks from both root and general-skills hooks.json
-  const allHooks = [];
-  const hookFiles = [
-    path.join(repoPath, 'hooks.json'),
-    path.join(repoPath, 'general-skills', 'hooks.json')
-  ];
-  for (const hooksJsonPath of hookFiles) {
-    if (!fs.existsSync(hooksJsonPath)) continue;
-    try {
-      const data = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
-      if (Array.isArray(data.UserPromptSubmit)) {
-        allHooks.push(...data.UserPromptSubmit);
-      }
-      log(`[Hooks] Loaded ${(data.UserPromptSubmit || []).length} hooks from ${hooksJsonPath}`);
-    } catch (err) {
-      log(`[Hooks] Failed to parse ${hooksJsonPath}: ${err.message}`);
-    }
-  }
-
-  if (allHooks.length === 0) {
-    log('[Hooks] No hooks found, skipping');
-    return;
-  }
-
-  // Ensure jq is installed (hooks require it)
-  ensureJqInstalled(log);
-
-  // Build code → hook entry lookup
-  const hooksByCode = {};
-  for (const h of allHooks) {
-    if (h.code) hooksByCode[h.code] = h;
-  }
-
-  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
-  let settings = {};
-  if (fs.existsSync(settingsPath)) {
-    try {
-      settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    } catch (_) {
-      settings = {};
-    }
-  }
-
-  if (!settings.hooks) settings.hooks = {};
-  if (!Array.isArray(settings.hooks.UserPromptSubmit)) settings.hooks.UserPromptSubmit = [];
-
-  let added = 0;
-  for (const skillName of skillNames) {
-    const hookCodes = SKILL_HOOK_MAP[skillName];
-    if (!hookCodes) continue;
-
-    for (const hookCode of hookCodes) {
-      const hookEntry = hooksByCode[hookCode];
-      if (!hookEntry) continue;
-
-      // Remove existing hook with same code (upsert — always replace with latest)
-      settings.hooks.UserPromptSubmit = settings.hooks.UserPromptSubmit.filter(h => h.code !== hookCode);
-
-      // Build fixed entry with code property + jq fix
-      const fixedEntry = JSON.parse(JSON.stringify(hookEntry));
-      fixedEntry.code = hookCode;
-      if (fixedEntry.hooks && fixedEntry.hooks[0] && fixedEntry.hooks[0].command) {
-        fixedEntry.hooks[0].command = fixedEntry.hooks[0].command
-          .replace(/else \{\} end/g, 'else empty end')
-          .replace(/N\\[+]1/g, 'N[+]1')   // fix invalid jq escape
-          .replace(/N\\\+1/g, 'N[+]1');
-      }
-      settings.hooks.UserPromptSubmit.push(fixedEntry);
-      log(`[Hooks] Upserted ${hookCode} for skill ${skillName}`);
-      added++;
-    }
-  }
-
-  if (added > 0) {
-    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
-    log(`[Hooks] settings.json updated (${added} hooks added)`);
-  }
-}
-
 function removeHooksForSkills(skillNames, logFn) {
   const log = logFn || function () {};
   const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
@@ -316,92 +233,6 @@ function removeHooksForSkills(skillNames, logFn) {
 
   fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
   log('[Hooks] settings.json updated');
-}
-
-function installCodexHooksForSkills(skillNames, repoPath, logFn) {
-  const log = logFn || function () {};
-
-  // Load all available hooks from both root and general-skills hooks.json
-  const allHooks = [];
-  const hookFiles = [
-    path.join(repoPath, 'hooks.json'),
-    path.join(repoPath, 'general-skills', 'hooks.json')
-  ];
-  for (const hooksJsonPath of hookFiles) {
-    if (!fs.existsSync(hooksJsonPath)) continue;
-    try {
-      const data = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
-      if (Array.isArray(data.UserPromptSubmit)) {
-        allHooks.push(...data.UserPromptSubmit);
-      }
-      log(`[CodexHooks] Loaded ${(data.UserPromptSubmit || []).length} hooks from ${hooksJsonPath}`);
-    } catch (err) {
-      log(`[CodexHooks] Failed to parse ${hooksJsonPath}: ${err.message}`);
-    }
-  }
-
-  if (allHooks.length === 0) {
-    log('[CodexHooks] No hooks found, skipping');
-    return;
-  }
-
-  ensureJqInstalled(log);
-
-  // Build code → hook entry lookup
-  const hooksByCode = {};
-  for (const h of allHooks) {
-    if (h.code) hooksByCode[h.code] = h;
-  }
-
-  const codexHooksPath = path.join(os.homedir(), '.codex', 'hooks.json');
-  let codexConfig = { hooks: { UserPromptSubmit: [] } };
-  if (fs.existsSync(codexHooksPath)) {
-    try {
-      codexConfig = JSON.parse(fs.readFileSync(codexHooksPath, 'utf8'));
-    } catch (_) {
-      codexConfig = { hooks: { UserPromptSubmit: [] } };
-    }
-  }
-
-  if (!codexConfig.hooks) codexConfig.hooks = {};
-  if (!Array.isArray(codexConfig.hooks.UserPromptSubmit)) codexConfig.hooks.UserPromptSubmit = [];
-
-  let added = 0;
-  for (const skillName of skillNames) {
-    const hookCodes = SKILL_HOOK_MAP[skillName];
-    if (!hookCodes) continue;
-
-    for (const hookCode of hookCodes) {
-      const hookEntry = hooksByCode[hookCode];
-      if (!hookEntry || !hookEntry.hooks || !hookEntry.hooks[0]) continue;
-
-      // Remove existing hook with same code (upsert)
-      codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h => h.code !== hookCode);
-
-      // Transform to Codex format + fix jq + add code property
-      const sourceHook = JSON.parse(JSON.stringify(hookEntry.hooks[0]));
-      if (sourceHook.command) {
-        sourceHook.command = sourceHook.command
-          .replace(/You MUST invoke the (\S+) skill using the Skill tool BEFORE doing anything else\./g, 'Use the $1 skill before doing anything else.')
-          .replace(/else \{\} end/g, 'else empty end');
-      }
-
-      const codexHookEntry = {
-        code: hookCode,
-        hooks: [sourceHook]
-      };
-
-      codexConfig.hooks.UserPromptSubmit.push(codexHookEntry);
-      log(`[CodexHooks] Upserted ${hookCode} for skill ${skillName}`);
-      added++;
-    }
-  }
-
-  if (added > 0) {
-    fs.mkdirSync(path.dirname(codexHooksPath), { recursive: true });
-    fs.writeFileSync(codexHooksPath, JSON.stringify(codexConfig, null, 2), 'utf8');
-    log(`[CodexHooks] hooks.json updated (${added} hooks added)`);
-  }
 }
 
 function removeCodexHooksForSkills(skillNames, logFn) {
@@ -473,9 +304,7 @@ module.exports = {
   isSkillsSourceDirectory,
   installSkills,
   getSkillsDir,
-  installHooksForSkills,
   removeHooksForSkills,
-  installCodexHooksForSkills,
   removeCodexHooksForSkills,
   removeSkills
 };

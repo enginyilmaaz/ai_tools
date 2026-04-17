@@ -1,6 +1,9 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.8 - 2026-04-17
+- refactor: stop auto-installing hooks on skill install; on install clean up any previously-installed hook entries instead (matched by hook `code`); uninstall behavior unchanged
+
 ## v2.0.7 - 2026-04-15
 - feat: Recommended Settings subpage replaces editor-settings flow — per-key VS Code apply/revert, per-alias bash/cmd, Windows HKCU context-menu writer, Linux Nautilus context-menu (python3-nautilus) with restart support
 - feat: Nautilus context menu integration — claude/codex/vscode entries with theme icons, bash -ic profile sourcing, subwindow restore after restart, PID-based kill with pkexec restart

@@ -304,13 +304,15 @@ function handleInstallSkills(sender, data) {
   }
   log(`[Skills] Done: ${succeeded} installed, ${failed} failed`);
 
-  // Install hooks for successfully installed skills
+  // Hooks are NOT installed automatically. Additionally, on install we clean up any
+  // previously-installed hooks for these skills (matched by `code` identifier) so that
+  // stale entries from older installs do not remain in settings.
   const installedSkills = results.filter(r => r.success).map(r => r.name);
   if (installedSkills.length > 0) {
     if (target === 'codex') {
-      skillInstaller.installCodexHooksForSkills(installedSkills, repoDir, log);
+      skillInstaller.removeCodexHooksForSkills(installedSkills, log);
     } else {
-      skillInstaller.installHooksForSkills(installedSkills, repoDir, log);
+      skillInstaller.removeHooksForSkills(installedSkills, log);
     }
   }
 
