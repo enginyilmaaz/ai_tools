@@ -30,6 +30,9 @@ function ensureJqInstalled(log) {
   }
 }
 
+// Minimal command-style hook set. Only skills that are triggered by an
+// explicit user directive (commit, analyze, etc.) or a specific identifier
+// pattern (ERP-[0-9]+) have a matching auto-trigger hook.
 const HOOK_SKILL_MAP = {
   'GEN_HOOK_COMMIT': 'commit',
   'GEN_HOOK_PLAYWRIGHT': 'playwright',
@@ -196,6 +199,144 @@ function getSkillsDir(target) {
   return getSkillsDirectory(target);
 }
 
+// Load full hook entries (code → entry) from the bundled hooks.json files.
+function loadHookEntriesByCode() {
+  const repoDir = getSkillsRepoDir();
+  const byCode = {};
+  if (!repoDir) return byCode;
+  const hookFiles = [
+    path.join(repoDir, 'hooks.json'),
+    path.join(repoDir, 'general-skills', 'hooks.json')
+  ];
+  for (const hooksJsonPath of hookFiles) {
+    if (!fs.existsSync(hooksJsonPath)) continue;
+    try {
+      const data = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
+      for (const entry of (data.UserPromptSubmit || [])) {
+        if (entry && entry.code) byCode[entry.code] = entry;
+      }
+    } catch (_) {}
+  }
+  return byCode;
+}
+
+function installHooksForSkills(skillNames, logFn) {
+  const log = logFn || function () {};
+  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  const entriesByCode = loadHookEntriesByCode();
+
+  // Nothing to install for these skills → skip (don't even touch settings.json).
+  const codesToInstall = [];
+  for (const skillName of skillNames) {
+    const codes = SKILL_HOOK_MAP[skillName];
+    if (codes) for (const c of codes) if (entriesByCode[c]) codesToInstall.push({ code: c, skill: skillName });
+  }
+  if (codesToInstall.length === 0) return;
+
+  ensureJqInstalled(log);
+
+  let settings = {};
+  if (fs.existsSync(settingsPath)) {
+    try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); }
+    catch (err) { log(`[Hooks] Failed to parse settings.json: ${err.message}`); return; }
+  }
+  if (!settings.hooks || typeof settings.hooks !== 'object') settings.hooks = {};
+  if (!Array.isArray(settings.hooks.UserPromptSubmit)) settings.hooks.UserPromptSubmit = [];
+
+  const canonByCode = loadCanonicalCommandsByCode();
+
+  for (const { code, skill } of codesToInstall) {
+    const source = entriesByCode[code];
+    // Upsert: remove by code OR by canonical command text, then append fresh entry.
+    const canonicalCmd = canonByCode[code];
+    settings.hooks.UserPromptSubmit = settings.hooks.UserPromptSubmit.filter(h =>
+      h.code !== code && !hookCommandMatches(h, canonicalCmd)
+    );
+    const fresh = JSON.parse(JSON.stringify(source));
+    fresh.code = code;
+    settings.hooks.UserPromptSubmit.push(fresh);
+    log(`[Hooks] Installed ${code} for skill ${skill}`);
+  }
+
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), 'utf8');
+  log('[Hooks] settings.json updated');
+}
+
+function installCodexHooksForSkills(skillNames, logFn) {
+  const log = logFn || function () {};
+  const codexHooksPath = path.join(os.homedir(), '.codex', 'hooks.json');
+  const entriesByCode = loadHookEntriesByCode();
+
+  const codesToInstall = [];
+  for (const skillName of skillNames) {
+    const codes = SKILL_HOOK_MAP[skillName];
+    if (codes) for (const c of codes) if (entriesByCode[c]) codesToInstall.push({ code: c, skill: skillName });
+  }
+  if (codesToInstall.length === 0) return;
+
+  ensureJqInstalled(log);
+
+  let codexConfig = {};
+  if (fs.existsSync(codexHooksPath)) {
+    try { codexConfig = JSON.parse(fs.readFileSync(codexHooksPath, 'utf8')); }
+    catch (err) { log(`[CodexHooks] Failed to parse hooks.json: ${err.message}`); return; }
+  }
+  if (!codexConfig.hooks || typeof codexConfig.hooks !== 'object') codexConfig.hooks = {};
+  if (!Array.isArray(codexConfig.hooks.UserPromptSubmit)) codexConfig.hooks.UserPromptSubmit = [];
+
+  const canonByCode = loadCanonicalCommandsByCode();
+
+  for (const { code, skill } of codesToInstall) {
+    const source = entriesByCode[code];
+    const canonicalCmd = canonByCode[code];
+    codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h =>
+      h.code !== code && !hookCommandMatches(h, canonicalCmd)
+    );
+    const innerHook = source && source.hooks && source.hooks[0];
+    if (!innerHook) continue;
+    codexConfig.hooks.UserPromptSubmit.push({ code, hooks: [JSON.parse(JSON.stringify(innerHook))] });
+    log(`[CodexHooks] Installed ${code} for skill ${skill}`);
+  }
+
+  const codexDir = path.dirname(codexHooksPath);
+  fs.mkdirSync(codexDir, { recursive: true });
+  fs.writeFileSync(codexHooksPath, JSON.stringify(codexConfig, null, 2), 'utf8');
+  log('[CodexHooks] hooks.json updated');
+}
+
+// Load canonical command strings per hook code from the bundled hooks.json
+// files. Older installs wrote hooks without a `code` property, so we must
+// fall back to matching by command text to clean them up.
+function loadCanonicalCommandsByCode() {
+  const repoDir = getSkillsRepoDir();
+  const byCode = {};
+  if (!repoDir) return byCode;
+  const hookFiles = [
+    path.join(repoDir, 'hooks.json'),
+    path.join(repoDir, 'general-skills', 'hooks.json')
+  ];
+  for (const hooksJsonPath of hookFiles) {
+    if (!fs.existsSync(hooksJsonPath)) continue;
+    try {
+      const data = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
+      for (const entry of (data.UserPromptSubmit || [])) {
+        const code = entry.code;
+        const cmd = entry && entry.hooks && entry.hooks[0] && entry.hooks[0].command;
+        if (code && cmd) byCode[code] = cmd;
+      }
+    } catch (_) {}
+  }
+  return byCode;
+}
+
+function hookCommandMatches(hookEntry, canonicalCmd) {
+  const cmd = hookEntry && hookEntry.hooks && hookEntry.hooks[0] && hookEntry.hooks[0].command;
+  if (!cmd || !canonicalCmd) return false;
+  // Normalize the known jq bug-fix drift: `else {} end` vs `else empty end`.
+  const norm = s => s.replace(/else\s+\{\}\s+end/g, 'else empty end');
+  return norm(cmd) === norm(canonicalCmd);
+}
+
 function removeHooksForSkills(skillNames, logFn) {
   const log = logFn || function () {};
   const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
@@ -218,13 +359,18 @@ function removeHooksForSkills(skillNames, logFn) {
     return;
   }
 
+  const canonByCode = loadCanonicalCommandsByCode();
+
   for (const skillName of skillNames) {
     const hookCodes = SKILL_HOOK_MAP[skillName];
     if (!hookCodes) continue;
 
     for (const hookCode of hookCodes) {
+      const canonicalCmd = canonByCode[hookCode];
       const before = settings.hooks.UserPromptSubmit.length;
-      settings.hooks.UserPromptSubmit = settings.hooks.UserPromptSubmit.filter(h => h.code !== hookCode);
+      settings.hooks.UserPromptSubmit = settings.hooks.UserPromptSubmit.filter(h =>
+        h.code !== hookCode && !hookCommandMatches(h, canonicalCmd)
+      );
       if (settings.hooks.UserPromptSubmit.length < before) {
         log(`[Hooks] Removed ${hookCode} for skill ${skillName}`);
       }
@@ -257,13 +403,18 @@ function removeCodexHooksForSkills(skillNames, logFn) {
     return;
   }
 
+  const canonByCode = loadCanonicalCommandsByCode();
+
   for (const skillName of skillNames) {
     const hookCodes = SKILL_HOOK_MAP[skillName];
     if (!hookCodes) continue;
 
     for (const hookCode of hookCodes) {
+      const canonicalCmd = canonByCode[hookCode];
       const before = codexConfig.hooks.UserPromptSubmit.length;
-      codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h => h.code !== hookCode);
+      codexConfig.hooks.UserPromptSubmit = codexConfig.hooks.UserPromptSubmit.filter(h =>
+        h.code !== hookCode && !hookCommandMatches(h, canonicalCmd)
+      );
       if (codexConfig.hooks.UserPromptSubmit.length < before) {
         log(`[CodexHooks] Removed ${hookCode} for skill ${skillName}`);
       }
@@ -277,14 +428,22 @@ function removeCodexHooksForSkills(skillNames, logFn) {
 function removeSkills(skillNames, target, logFn) {
   const log = logFn || function () {};
   const skillsDir = getSkillsDirectory(target);
+  const results = [];
 
   for (const skill of skillNames) {
     const dest = path.join(skillsDir, skill);
-    if (fs.existsSync(dest)) {
-      fs.rmSync(dest, { recursive: true, force: true });
-      log(`[${skill}] Removed from ${dest}`);
-    } else {
-      log(`[${skill}] Not found in ${skillsDir}, skipping`);
+    try {
+      if (fs.existsSync(dest)) {
+        fs.rmSync(dest, { recursive: true, force: true });
+        log(`[${skill}] Removed from ${dest}`);
+        results.push({ name: skill, success: true, message: '' });
+      } else {
+        log(`[${skill}] Not found in ${skillsDir}, skipping`);
+        results.push({ name: skill, success: true, message: 'Not installed' });
+      }
+    } catch (err) {
+      log(`[${skill}] FAILED — ${err.message}`);
+      results.push({ name: skill, success: false, message: err.message });
     }
   }
 
@@ -294,6 +453,7 @@ function removeSkills(skillNames, target, logFn) {
     removeHooksForSkills(skillNames, logFn);
   }
   log('[Skills] Reload: restart Claude Code or run /mcp to apply changes');
+  return results;
 }
 
 module.exports = {
@@ -304,6 +464,8 @@ module.exports = {
   isSkillsSourceDirectory,
   installSkills,
   getSkillsDir,
+  installHooksForSkills,
+  installCodexHooksForSkills,
   removeHooksForSkills,
   removeCodexHooksForSkills,
   removeSkills

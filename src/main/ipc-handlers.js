@@ -304,15 +304,15 @@ function handleInstallSkills(sender, data) {
   }
   log(`[Skills] Done: ${succeeded} installed, ${failed} failed`);
 
-  // Hooks are NOT installed automatically. Additionally, on install we clean up any
-  // previously-installed hooks for these skills (matched by `code` identifier) so that
-  // stale entries from older installs do not remain in settings.
+  // Upsert the minimal auto-trigger hooks for the installed skills.
+  // installHooksForSkills removes any stale entries by code or canonical command
+  // text, then appends the fresh entry with a `code` property.
   const installedSkills = results.filter(r => r.success).map(r => r.name);
   if (installedSkills.length > 0) {
     if (target === 'codex') {
-      skillInstaller.removeCodexHooksForSkills(installedSkills, log);
+      skillInstaller.installCodexHooksForSkills(installedSkills, log);
     } else {
-      skillInstaller.removeHooksForSkills(installedSkills, log);
+      skillInstaller.installHooksForSkills(installedSkills, log);
     }
   }
 

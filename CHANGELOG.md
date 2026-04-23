@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.9 - 2026-04-22
+- fix: removeSkills returns results array (no more "Cannot read properties of undefined" crash); hook cleanup now matches by code OR canonical command text (normalizes `else {} end` → `else empty end`) so stale entries without a code property are also removed
+- feat: reinstate auto-trigger hooks on skill install — installHooksForSkills upserts by code or command; handleInstallSkills calls install (not remove) so enabling a skill gives the user its trigger hook back
+
 ## v2.0.8 - 2026-04-17
 - refactor: stop auto-installing hooks on skill install; on install clean up any previously-installed hook entries instead (matched by hook `code`); uninstall behavior unchanged
 
