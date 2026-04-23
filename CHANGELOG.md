@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.10 - 2026-04-22
+- refactor: drop jira-api and playwright skills from the general catalog (both removed downstream); trim HOOK_SKILL_MAP and i18n accordingly
+- chore: bump src/skills submodule — removes jira-api/playwright skills and trims hooks.json to COMMIT/ANALYZE/OPTIMIZE/CODE_REVIEW
+
 ## v2.0.9 - 2026-04-22
 - fix: removeSkills returns results array (no more "Cannot read properties of undefined" crash); hook cleanup now matches by code OR canonical command text (normalizes `else {} end` → `else empty end`) so stale entries without a code property are also removed
 - feat: reinstate auto-trigger hooks on skill install — installHooksForSkills upserts by code or command; handleInstallSkills calls install (not remove) so enabling a skill gives the user its trigger hook back

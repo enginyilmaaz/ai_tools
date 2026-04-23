@@ -35,14 +35,9 @@ function ensureJqInstalled(log) {
 // pattern (ERP-[0-9]+) have a matching auto-trigger hook.
 const HOOK_SKILL_MAP = {
   'GEN_HOOK_COMMIT': 'commit',
-  'GEN_HOOK_PLAYWRIGHT': 'playwright',
   'GEN_HOOK_ANALYZE': 'analyze',
   'GEN_HOOK_OPTIMIZE': 'optimize',
-  'GEN_HOOK_CODE_REVIEW': 'code-review',
-  'GEN_HOOK_SCAFFOLD_FULLSTACK': 'fullstack-scaffold',
-  'GEN_HOOK_SCAFFOLD_BACKEND': 'nodejs-backend-scaffold',
-  'GEN_HOOK_SCAFFOLD_FRONTEND': 'nextjs-frontend-scaffold',
-  'GEN_HOOK_JIRA_API': 'jira-api'
+  'GEN_HOOK_CODE_REVIEW': 'code-review'
 };
 
 // Reverse map: skill name → hook code(s) (array, since a skill can have multiple hooks)
