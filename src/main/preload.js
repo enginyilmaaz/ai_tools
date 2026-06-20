@@ -43,5 +43,16 @@ contextBridge.exposeInMainWorld('api', {
   },
   onWindowCapabilities: (cb) => {
     ipcRenderer.on('window-capabilities', (_e, data) => cb(data));
+  },
+
+  // Auto-update
+  updater: {
+    check: () => ipcRenderer.invoke('updater:check'),
+    install: (assetUrl, assetName, sudoPassword) => ipcRenderer.invoke('updater:install', assetUrl, assetName, sudoPassword),
+    onDownloadProgress: (cb) => {
+      const handler = (_e, data) => cb(data);
+      ipcRenderer.on('updater:download-progress', handler);
+      return () => ipcRenderer.removeListener('updater:download-progress', handler);
+    }
   }
 });

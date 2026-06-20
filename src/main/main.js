@@ -43,6 +43,7 @@ if (process.platform === 'linux') {
 
 const { registerIpcHandlers, setCreateSubWindow, setMainWindow } = require('./ipc-handlers');
 const logger = require('./shared/logger');
+const updater = require('./shared/updater');
 
 // Menu translations
 const menuTranslations = {
@@ -548,6 +549,9 @@ function createMenu() {
 
 app.whenReady().then(() => {
   installLinuxSystemIcon();
+  // Clear any stale in-app-update marker so it only ever gates the one install
+  // that set it (a later manual dpkg must still kill the stale instance).
+  try { fs.rmSync(path.join(os.tmpdir(), '.ai-tool-inapp-update'), { force: true }); } catch (_) {}
   setCreateSubWindow(createSubWindow);
 
   // Broadcast theme when system theme changes (for 'system' mode)
@@ -594,6 +598,45 @@ app.whenReady().then(() => {
   ipcMain.on('window-config', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     event.returnValue = getWindowCapabilities(win);
+  });
+
+  // ── Auto-update (public repo: enginyilmaaz/ai_tools) ──
+  ipcMain.handle('updater:check', async () => {
+    if (!app.isPackaged) return { available: false, reason: 'dev' };
+    return updater.checkForUpdate();
+  });
+
+  ipcMain.handle('updater:install', async (event, assetUrl, assetName, sudoPassword) => {
+    const marker = path.join(os.tmpdir(), '.ai-tool-inapp-update');
+    try {
+      if (process.platform !== 'linux') {
+        return { success: false, error: 'Auto-install is only supported on Linux' };
+      }
+      if (sudoPassword) {
+        const v = await updater.validateSudo(sudoPassword);
+        if (!v.ok) return { success: false, error: v.error || 'Incorrect sudo password' };
+      }
+      // Marker so the new package postinst skips its stale-instance pkill —
+      // this is an in-app update that relaunches itself.
+      try { fs.writeFileSync(marker, '1'); } catch (_) {}
+      const debPath = await updater.downloadAsset(assetUrl, assetName, (received, total) => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('updater:download-progress', { received, total });
+        }
+      });
+      const result = await updater.installDeb(debPath, sudoPassword);
+      try { fs.rmSync(path.dirname(debPath), { recursive: true, force: true }); } catch (_) {}
+      if (result.success) {
+        app.relaunch();
+        setTimeout(() => app.exit(0), 1000);
+      } else {
+        try { fs.rmSync(marker, { force: true }); } catch (_) {}
+      }
+      return result;
+    } catch (err) {
+      try { fs.rmSync(marker, { force: true }); } catch (_) {}
+      return { success: false, error: err.message };
+    }
   });
 
   createWindow();
