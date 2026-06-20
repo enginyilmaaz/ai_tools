@@ -440,6 +440,8 @@ var App = {
             if (!savedLang || savedLang === Bridge._langCode) {
                 self._logStartup(d.version);
             }
+            // Silent auto-update check on startup (public repo, no auth gate).
+            if (window.UpdateUI) { try { window.UpdateUI.check({ manual: false }); } catch (e) {} }
         });
 
         // Language changed from the main process
