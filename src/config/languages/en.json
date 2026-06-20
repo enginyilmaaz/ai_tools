@@ -138,6 +138,8 @@
   "SkillDescAnalyze": "Read-only audit for complexity, query patterns, and performance hotspots.",
   "SkillNameCodeReview": "Code Review",
   "SkillDescCodeReview": "Review code against coding standards, naming rules, and structure expectations.",
+  "SkillNameCodingConventions": "Coding Conventions",
+  "SkillDescCodingConventions": "Apply coding standards as you write code: naming, placement, readability, SOLID, and size limits.",
   "SkillNameOptimize": "Optimize",
   "SkillDescOptimize": "Find and fix bottlenecks, redundant loops, and high-complexity code paths.",
   "SkillNameCommit": "Commit",
