@@ -1,6 +1,11 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.11 - 2026-06-20
+- feat: MCP/Plugin catalog gains 13 new general entries (context7, sentry, csharp-lsp, microsoft-docs, mcp-server-dev, learning-output-style, session-report, chrome-devtools-mcp, playground, hookify, ralph-loop, claude-md-management, feature-dev) — _allIntegrations rows, EN+TR guide chapters, and placeholder monogram icons
+- feat: deb postinst kills the old running instance (build/deb-after-install.sh via deb.afterInstall) so an upgrade immediately serves the fresh asar and bundled skills
+- chore: sync upstream 4bff5d9..f13e9af — skipped dm/sp catalog guides and the sm_ai_skills submodule bumps (not applicable to this general-only fork; general_ai_skills submodule already current)
+
 ## v2.0.10 - 2026-04-22
 - refactor: drop jira-api and playwright skills from the general catalog (both removed downstream); trim HOOK_SKILL_MAP and i18n accordingly
 - chore: bump src/skills submodule — removes jira-api/playwright skills and trims hooks.json to COMMIT/ANALYZE/OPTIMIZE/CODE_REVIEW

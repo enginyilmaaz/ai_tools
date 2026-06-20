@@ -19,7 +19,20 @@ window.McpServersPage = {
         { id: 'security-guidance', icon: 'assets/mcp/security-guidance.svg', nameKey: 'PluginSecurityGuidanceName', descKey: 'PluginSecurityGuidanceDesc', type: 'plugin' },
         { id: 'code-review', icon: 'assets/mcp/code-review.svg', nameKey: 'PluginCodeReviewName', descKey: 'PluginCodeReviewDesc', type: 'plugin' },
         { id: 'frontend-design', icon: 'assets/mcp/frontend-design.svg', nameKey: 'PluginFrontendDesignName', descKey: 'PluginFrontendDesignDesc', type: 'plugin' },
-        { id: 'code-simplifier', icon: 'assets/mcp/code-simplifier.svg', nameKey: 'PluginCodeSimplifierName', descKey: 'PluginCodeSimplifierDesc', type: 'plugin' }
+        { id: 'code-simplifier', icon: 'assets/mcp/code-simplifier.svg', nameKey: 'PluginCodeSimplifierName', descKey: 'PluginCodeSimplifierDesc', type: 'plugin' },
+        { id: 'context7', icon: 'assets/mcp/context7.svg', nameKey: 'PluginContext7Name', descKey: 'PluginContext7Desc', type: 'plugin' },
+        { id: 'sentry', icon: 'assets/mcp/sentry.svg', nameKey: 'PluginSentryName', descKey: 'PluginSentryDesc', type: 'plugin' },
+        { id: 'csharp-lsp', icon: 'assets/mcp/csharp-lsp.svg', nameKey: 'PluginCsharpLspName', descKey: 'PluginCsharpLspDesc', type: 'plugin' },
+        { id: 'microsoft-docs', icon: 'assets/mcp/microsoft-docs.svg', nameKey: 'PluginMicrosoftDocsName', descKey: 'PluginMicrosoftDocsDesc', type: 'plugin' },
+        { id: 'mcp-server-dev', icon: 'assets/mcp/mcp-server-dev.svg', nameKey: 'PluginMcpServerDevName', descKey: 'PluginMcpServerDevDesc', type: 'plugin' },
+        { id: 'learning-output-style', icon: 'assets/mcp/learning-output-style.svg', nameKey: 'PluginLearningOutputStyleName', descKey: 'PluginLearningOutputStyleDesc', type: 'plugin' },
+        { id: 'session-report', icon: 'assets/mcp/session-report.svg', nameKey: 'PluginSessionReportName', descKey: 'PluginSessionReportDesc', type: 'plugin' },
+        { id: 'chrome-devtools-mcp', icon: 'assets/mcp/chrome-devtools-mcp.svg', nameKey: 'PluginChromeDevtoolsMcpName', descKey: 'PluginChromeDevtoolsMcpDesc', type: 'plugin' },
+        { id: 'playground', icon: 'assets/mcp/playground.svg', nameKey: 'PluginPlaygroundName', descKey: 'PluginPlaygroundDesc', type: 'plugin' },
+        { id: 'hookify', icon: 'assets/mcp/hookify.svg', nameKey: 'PluginHookifyName', descKey: 'PluginHookifyDesc', type: 'plugin' },
+        { id: 'ralph-loop', icon: 'assets/mcp/ralph-loop.svg', nameKey: 'PluginRalphLoopName', descKey: 'PluginRalphLoopDesc', type: 'plugin' },
+        { id: 'claude-md-management', icon: 'assets/mcp/claude-md-management.svg', nameKey: 'PluginClaudeMdManagementName', descKey: 'PluginClaudeMdManagementDesc', type: 'plugin' },
+        { id: 'feature-dev', icon: 'assets/mcp/feature-dev.svg', nameKey: 'PluginFeatureDevName', descKey: 'PluginFeatureDevDesc', type: 'plugin' }
     ],
 
     _pluginInstalledMap: {},
