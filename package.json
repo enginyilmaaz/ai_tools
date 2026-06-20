@@ -97,7 +97,8 @@
         "libatspi2.0-0",
         "libuuid1",
         "libsecret-1-0"
-      ]
+      ],
+      "afterInstall": "build/deb-after-install.sh"
     }
   },
   "dependencies": {
