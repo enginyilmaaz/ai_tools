@@ -139,6 +139,8 @@
   "SkillDescAnalyze": "Karma\u015f\u0131kl\u0131k, sorgu deseni ve performans darbo\u011fazlar\u0131 i\u00e7in salt okunur kod analizi yapar.",
   "SkillNameCodeReview": "Code Review",
   "SkillDescCodeReview": "Kodlama standartlar\u0131, isimlendirme kurallar\u0131 ve yap\u0131 beklentilerine g\u00f6re kod incelemesi yapar.",
+  "SkillNameCodingConventions": "Kodlama Kurallar\u0131",
+  "SkillDescCodingConventions": "Kod yazarken kodlama standartlar\u0131n\u0131 uygula: isimlendirme, yerle\u015fim, okunabilirlik, SOLID ve boyut limitleri.",
   "SkillNameOptimize": "Optimize",
   "SkillDescOptimize": "Performans darbo\u011fazlar\u0131n\u0131, gereksiz d\u00f6ng\u00fcleri ve y\u00fcksek karma\u015f\u0131kl\u0131kl\u0131 ak\u0131\u015flar\u0131 iyile\u015ftirir.",
   "SkillNameCommit": "Commit",

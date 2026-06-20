@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.12 - 2026-06-20
+- feat: add coding-conventions skill to the general catalog — proactively applies coding standards while writing code; placed right after code-review as its proactive twin (Linux + Windows catalogs, EN/TR strings, skill-usage page)
+- chore: bump src/skills submodule 2feed0e -> 8ae9bc3 — adds coding-conventions, syncs code-review, removes general-coding (never exposed in the catalog), strips SmartMarine references
+
 ## v2.0.11 - 2026-06-20
 - feat: MCP/Plugin catalog gains 13 new general entries (context7, sentry, csharp-lsp, microsoft-docs, mcp-server-dev, learning-output-style, session-report, chrome-devtools-mcp, playground, hookify, ralph-loop, claude-md-management, feature-dev) — _allIntegrations rows, EN+TR guide chapters, and placeholder monogram icons
 - feat: deb postinst kills the old running instance (build/deb-after-install.sh via deb.afterInstall) so an upgrade immediately serves the fresh asar and bundled skills
