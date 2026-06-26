@@ -7,9 +7,23 @@ function reply(sender, type, data) {
   sender.send('bridge-reply', { type, data });
 }
 
+// These flow into a shell command (claudeCmd → exec), so allow only the safe
+// characters real plugin ids / specs / marketplaces use. Anything else is
+// rejected before it can reach the shell — no metacharacters, no injection.
+const SAFE_PLUGIN_SPEC = /^[A-Za-z0-9._@/-]+$/;
+const SAFE_MARKETPLACE = /^[A-Za-z0-9._/-]+$/;
+
 async function install(sender, data) {
   const { id, installId, marketplace } = data || {};
   if (!id) return reply(sender, 'pluginInstallResult', { id, success: false, message: 'No plugin ID' });
+
+  // Reject anything that isn't a plain plugin spec / marketplace slug.
+  if (!SAFE_PLUGIN_SPEC.test(id) ||
+      (installId && !SAFE_PLUGIN_SPEC.test(installId)) ||
+      (marketplace && !SAFE_MARKETPLACE.test(marketplace))) {
+    reply(sender, 'log', { message: `[Plugin] ${id} — invalid plugin/marketplace identifier, refusing to install` });
+    return reply(sender, 'pluginInstallResult', { id, success: false, message: 'Invalid plugin or marketplace identifier' });
+  }
 
   // Check internet first
   if (!(await checkInternet())) {
