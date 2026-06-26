@@ -418,5 +418,7 @@
   "UpdateWrongPassword": "Incorrect computer password.",
   "UpdateDevMode": "Update check is disabled in development.",
   "UpdateUpToDate": "You are on the latest version.",
-  "UpdateCheckFailed": "Could not check for updates."
+  "UpdateCheckFailed": "Could not check for updates.",
+  "PluginPonytailName": "Ponytail",
+  "PluginPonytailDesc": "Guides the agent toward minimal, practical code via a decision ladder — skip needless features, reuse code, prefer native APIs. ~54% less code, same safety. Modes: lite/full/ultra/off."
 }

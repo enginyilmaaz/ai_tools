@@ -8,7 +8,7 @@ function reply(sender, type, data) {
 }
 
 async function install(sender, data) {
-  const { id } = data || {};
+  const { id, installId, marketplace } = data || {};
   if (!id) return reply(sender, 'pluginInstallResult', { id, success: false, message: 'No plugin ID' });
 
   // Check internet first
@@ -23,8 +23,18 @@ async function install(sender, data) {
     return reply(sender, 'pluginInstallResult', { id, success: true, message: 'already installed' });
   }
 
-  const cmd = claudeCmd(`plugin install ${id}`);
-  reply(sender, 'log', { message: `[Plugin] Installing ${id} → cmd: ${cmd}` });
+  // Plugins from a custom marketplace (not the official one) need the
+  // marketplace registered first. Idempotent — re-adding is a no-op.
+  if (marketplace) {
+    const mpCmd = claudeCmd(`plugin marketplace add ${marketplace}`);
+    reply(sender, 'log', { message: `[Plugin] Adding marketplace ${marketplace} → cmd: ${mpCmd}` });
+    await runShellCommandVerbose(mpCmd, 60000);
+  }
+
+  // installId is the marketplace-qualified spec (e.g. ponytail@ponytail);
+  // falls back to the plain id for official-marketplace plugins.
+  const cmd = claudeCmd(`plugin install ${installId || id}`);
+  reply(sender, 'log', { message: `[Plugin] Installing ${installId || id} → cmd: ${cmd}` });
   const result = await runShellCommandVerbose(cmd, 60000);
   const success = await isPluginInstalled(id);
   if (success) {
