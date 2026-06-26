@@ -418,5 +418,7 @@
   "UpdateWrongPassword": "Bilgisayar parolası yanlış.",
   "UpdateDevMode": "Geliştirme modunda güncelleme kontrolü kapalıdır.",
   "UpdateUpToDate": "En güncel sürümü kullanıyorsunuz.",
-  "UpdateCheckFailed": "Güncellemeler kontrol edilemedi."
+  "UpdateCheckFailed": "Güncellemeler kontrol edilemedi.",
+  "PluginPonytailName": "Ponytail",
+  "PluginPonytailDesc": "Ajanı bir karar merdiveniyle minimal, pratik koda yönlendirir — gereksiz özellikleri atla, kodu yeniden kullan, native API tercih et. ~%54 daha az kod, aynı güvenlik. Modlar: lite/full/ultra/off."
 }

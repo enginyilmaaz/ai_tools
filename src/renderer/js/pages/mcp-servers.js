@@ -32,7 +32,8 @@ window.McpServersPage = {
         { id: 'hookify', icon: 'assets/mcp/hookify.svg', nameKey: 'PluginHookifyName', descKey: 'PluginHookifyDesc', type: 'plugin' },
         { id: 'ralph-loop', icon: 'assets/mcp/ralph-loop.svg', nameKey: 'PluginRalphLoopName', descKey: 'PluginRalphLoopDesc', type: 'plugin' },
         { id: 'claude-md-management', icon: 'assets/mcp/claude-md-management.svg', nameKey: 'PluginClaudeMdManagementName', descKey: 'PluginClaudeMdManagementDesc', type: 'plugin' },
-        { id: 'feature-dev', icon: 'assets/mcp/feature-dev.svg', nameKey: 'PluginFeatureDevName', descKey: 'PluginFeatureDevDesc', type: 'plugin' }
+        { id: 'feature-dev', icon: 'assets/mcp/feature-dev.svg', nameKey: 'PluginFeatureDevName', descKey: 'PluginFeatureDevDesc', type: 'plugin' },
+        { id: 'ponytail', icon: 'assets/mcp/ponytail.svg', nameKey: 'PluginPonytailName', descKey: 'PluginPonytailDesc', type: 'plugin', marketplace: 'DietrichGebert/ponytail', installId: 'ponytail@ponytail' }
     ],
 
     _pluginInstalledMap: {},
@@ -434,7 +435,7 @@ window.McpServersPage = {
                             installBtn.disabled = true;
                             installBtn.innerHTML = '<span class="mi" style="animation:spin 1s linear infinite">hourglass_empty</span> ' + L(isPlugin ? 'PluginInstallingBtn' : 'McpInstallingBtn');
                             if (isPlugin) {
-                                Bridge.send('installPlugin', { id: item.id });
+                                Bridge.send('installPlugin', { id: item.id, installId: item.installId, marketplace: item.marketplace });
                             } else if (item.fields && item.fields.length > 0) {
                                 self._showFormModal(item);
                             } else {
@@ -687,7 +688,7 @@ window.McpServersPage = {
                 return;
             }
             var item = queue[idx++];
-            Bridge.send(item.type === 'plugin' ? 'installPlugin' : 'installMcp', { id: item.id });
+            Bridge.send(item.type === 'plugin' ? 'installPlugin' : 'installMcp', { id: item.id, installId: item.installId, marketplace: item.marketplace });
         }
         self._installAllNext = next;
         next();
