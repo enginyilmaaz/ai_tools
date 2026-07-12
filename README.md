@@ -28,8 +28,8 @@ Electron desktop application for managing development tools, Claude Code skills,
 - **Dual Target** — Install to Claude or Codex with split dropdown button
 
 ### MCP & Plugins (Subwindow)
-- **MCP Servers** — Install, configure, and remove MCP servers (Postman, Atlassian, GitHub, PostgreSQL, Figma)
-- **Plugins** — Install and remove Claude Code plugins (Superpowers, Playwright, TypeScript LSP, etc.)
+- **MCP Servers** — Install, configure, and remove MCP servers (Postman, Atlassian, GitHub, Figma)
+- **Plugins** — Install and remove Claude Code plugins (Superpowers, Playwright, TypeScript LSP, Ponytail, context7, and more)
 - **Icon-only Actions** — Compact per-row buttons with tooltip labels
 
 ### Platform Support
@@ -38,6 +38,7 @@ Electron desktop application for managing development tools, Claude Code skills,
 - **Rounded Corners** — Transparent frameless windows with 8px border-radius
 
 ### General
+- **In-App Updates** — Checks GitHub Releases for a newer version; on Linux self-installs the `.deb` with a runtime sudo password (never stored) and relaunches, other platforms open the releases page
 - **Multi-language** — Full English and Turkish UI with runtime language switching
 - **Theming** — Dark, light, and system-auto theme modes
 - **Logs Panel** — Collapsible log viewer in the footer bar with copy support

@@ -1,6 +1,13 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.13 - 2026-07-13
+- feat: in-app auto-update via GitHub Releases — About-page "Check for Updates" with inline status and an update dialog; on Linux the `.deb` self-installs with a runtime sudo password (never stored) and the app relaunches itself, other platforms open the releases page
+- feat: Ponytail plugin — custom marketplace support in the MCP & Plugins catalog
+- security: validate plugin id / installId / marketplace against a strict allowlist before any shell exec during plugin install
+- chore: drop hookify, learning-output-style, csharp-lsp, microsoft-docs, and postgres from the MCP & Plugins catalog (mirrors upstream)
+- chore: sync upstream f13e9af..5b11a76 — skipped the Global Claude Rules manager (depends on a private sm_ai_rules repo with no public counterpart), the vfd skill (SmartMarine-specific), and the sm_ai_skills submodule bumps (this fork ships its own general_ai_skills)
+
 ## v2.0.12 - 2026-06-20
 - feat: add coding-conventions skill to the general catalog — proactively applies coding standards while writing code; placed right after code-review as its proactive twin (Linux + Windows catalogs, EN/TR strings, skill-usage page)
 - chore: bump src/skills submodule 2feed0e -> 8ae9bc3 — adds coding-conventions, syncs code-review, removes general-coding (never exposed in the catalog), strips SmartMarine references
