@@ -8,6 +8,7 @@ Electron desktop application for managing development tools, Claude Code skills,
 - `src/renderer` — Renderer UI, pages, assets, and static docs
 - `src/config` — Runtime constants and all language files
 - `src/skills` — Claude skills git submodule used by the installer and bundled builds
+- `src/rules` — Global Claude/Codex rules git submodule (manifest + `## rule` sections)
 
 ## Features
 
@@ -31,6 +32,11 @@ Electron desktop application for managing development tools, Claude Code skills,
 - **MCP Servers** — Install, configure, and remove MCP servers (Postman, Atlassian, GitHub, Figma)
 - **Plugins** — Install and remove Claude Code plugins (Superpowers, Playwright, TypeScript LSP, Ponytail, context7, and more)
 - **Icon-only Actions** — Compact per-row buttons with tooltip labels
+
+### Global Rules (Subwindow)
+- **Rules Catalog** — Browse rules from the bundled `src/rules` submodule and add or remove them per target
+- **Idempotent Merge** — Installing a rule inserts or replaces its `## Heading` section in `~/.claude/CLAUDE.md` (Claude) and `~/.codex/AGENTS.md` (Codex); removing strips only that section, preserving everything else
+- **Installed Badges** — Per-target badges show which rules are already present in each instruction file
 
 ### Platform Support
 - **Windows** — winget, direct download fallbacks, NVM setup.exe, GitHub API-resolved URLs

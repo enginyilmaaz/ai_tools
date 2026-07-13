@@ -1,6 +1,11 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.14 - 2026-07-13
+- feat: Global Claude Rules manager — a new "Global Rules" window that merges individual `## rule` sections into the global instruction files (`~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`); install merges a rule's section idempotently, remove strips it, and per-target badges show which rules are already present
+- feat: bundle the public `enginyilmaaz/ai_rules` repo as the new `src/rules` submodule (manifest.json + preamble.md + rules/<id>.md) so adding or editing a rule is a repo edit with no app rebuild
+- chore: sync upstream 5b11a76..9b705d8 — point src/rules at the canonical public `enginyilmaaz/ai_rules`; skipped the vfd skill (SmartMarine-specific) and kept the fork's own `docs/`
+
 ## v2.0.13 - 2026-07-13
 - feat: in-app auto-update via GitHub Releases — About-page "Check for Updates" with inline status and an update dialog; on Linux the `.deb` self-installs with a runtime sudo password (never stored) and the app relaunches itself, other platforms open the releases page
 - feat: Ponytail plugin — custom marketplace support in the MCP & Plugins catalog
