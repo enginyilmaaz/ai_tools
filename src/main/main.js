@@ -343,6 +343,7 @@ function createSubWindow(pageName) {
   else if (pageName === 'best-practices' || pageName === 'mcp-guide') { winWidth = 1180; winHeight = 700; }
   else if (pageName === 'skill-usage') { winWidth = 1180; winHeight = 700; }
   else if (pageName === 'skills') { winWidth = 660; winHeight = 660; }
+  else if (pageName === 'global-rules') { winWidth = 660; winHeight = 660; }
   else if (pageName === 'mcp-servers') { winWidth = 725; winHeight = 590; }
   else if (pageName === 'recommended-settings') { winWidth = 795; winHeight = 590; }
   else if (pageName === 'dev-tools') { winWidth = 520; winHeight = process.platform === 'win32' ? 690 : 610; }

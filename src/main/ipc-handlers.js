@@ -144,6 +144,54 @@ function registerIpcHandlers() {
         // Store skills repo path if needed
         break;
 
+      // ==================== Global Claude Rules ====================
+      case 'getGlobalRules': {
+        const ri = require('./modules/rules-installer');
+        const manifest = ri.readManifest();
+        sender.send('bridge-reply', {
+          type: 'globalRulesData',
+          data: {
+            repoFound: !!ri.getRulesRepoDir(),
+            manifest: manifest || { rules: [] },
+            state: { claude: ri.getRulesState('claude'), codex: ri.getRulesState('codex') }
+          }
+        });
+        break;
+      }
+
+      case 'installGlobalRules': {
+        const wrappedSender = wrapSenderWithMainLog(sender);
+        const log = (msg) => wrappedSender.send('bridge-reply', { type: 'log', data: { message: msg } });
+        const ri = require('./modules/rules-installer');
+        const ids = (data && data.rules) || [];
+        const target = data && data.target === 'codex' ? 'codex' : 'claude';
+        log(`[Rules] Adding ${ids.length} rule(s) to ${target}...`);
+        const res = ri.installRules(ids, target, log);
+        const state = { claude: ri.getRulesState('claude'), codex: ri.getRulesState('codex') };
+        log(res.ok ? `[Rules] Done: ${(res.applied || []).length} added` : `[Rules] Failed: ${res.error}`);
+        wrappedSender.send('bridge-reply', {
+          type: 'installGlobalRulesResult',
+          data: { success: !!res.ok, error: res.error || null, target, applied: res.applied || [], state }
+        });
+        break;
+      }
+
+      case 'removeGlobalRules': {
+        const wrappedSender = wrapSenderWithMainLog(sender);
+        const log = (msg) => wrappedSender.send('bridge-reply', { type: 'log', data: { message: msg } });
+        const ri = require('./modules/rules-installer');
+        const ids = (data && data.rules) || [];
+        const target = data && data.target === 'codex' ? 'codex' : 'claude';
+        log(`[Rules] Removing ${ids.length} rule(s) from ${target}...`);
+        const res = ri.removeRules(ids, target, log);
+        const state = { claude: ri.getRulesState('claude'), codex: ri.getRulesState('codex') };
+        wrappedSender.send('bridge-reply', {
+          type: 'removeGlobalRulesResult',
+          data: { success: !!res.ok, error: res.error || null, target, removed: res.removed || [], state }
+        });
+        break;
+      }
+
       // ==================== MCP Servers ====================
       case 'installMcp':
         mcpManager.install(wrapSenderWithMainLog(sender), data);
@@ -197,6 +245,10 @@ function registerIpcHandlers() {
 
       case 'openSkills':
         if (_createSubWindow) _createSubWindow('skills');
+        break;
+
+      case 'openGlobalRules':
+        if (_createSubWindow) _createSubWindow('global-rules');
         break;
 
       case 'openMcpGuide':

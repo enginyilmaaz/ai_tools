@@ -175,6 +175,15 @@ var App = {
             });
         }
 
+        // Global Claude Rules - separate window
+        var globalRulesMenuItem = document.getElementById('mi-global-rules');
+        if (globalRulesMenuItem) {
+            globalRulesMenuItem.addEventListener('click', function () {
+                menuOverlay.classList.add('hidden');
+                Bridge.send('openGlobalRules');
+            });
+        }
+
         // About - separate window
         document.getElementById('mi-about').addEventListener('click', function () {
             menuOverlay.classList.add('hidden');
@@ -194,6 +203,8 @@ var App = {
         if (wtSkills) wtSkills.addEventListener('click', function () { Bridge.send('openSkills'); });
         var wtMcp = document.getElementById('wt-mcp-servers');
         if (wtMcp) wtMcp.addEventListener('click', function () { Bridge.send('openMcpServers'); });
+        var wtGlobalRules = document.getElementById('wt-global-rules');
+        if (wtGlobalRules) wtGlobalRules.addEventListener('click', function () { Bridge.send('openGlobalRules'); });
 
         document.getElementById('mi-exit').addEventListener('click', function () {
             menuOverlay.classList.add('hidden');
@@ -1286,6 +1297,8 @@ var App = {
         if (el) el.textContent = L('MenuSkillsCatalog');
         el = $('mi-mcp-servers-text');
         if (el) el.textContent = L('MenuMcpServers');
+        el = $('mi-global-rules-text');
+        if (el) el.textContent = L('MenuGlobalRules');
         el = $('mi-about-text');
         if (el) el.textContent = L('MenuAbout');
         el = $('mi-exit-text');
@@ -1306,6 +1319,8 @@ var App = {
         if (el) el.textContent = L('WalkthroughSkillsCatalog');
         el = $('wt-mcp-servers-text');
         if (el) el.textContent = L('WalkthroughMcpServers');
+        el = $('wt-global-rules-text');
+        if (el) el.textContent = L('WalkthroughGlobalRules');
 
         // Log
         el = $('log-title');

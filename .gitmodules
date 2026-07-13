@@ -2,3 +2,7 @@
 	path = src/skills
 	url = https://github.com/enginyilmaaz/general_ai_skills.git
 	branch = main
+[submodule "src/rules"]
+	path = src/rules
+	url = https://github.com/enginyilmaaz/ai_rules.git
+	branch = main
