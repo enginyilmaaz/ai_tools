@@ -1,6 +1,9 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.15 - 2026-07-13
+- chore: sync upstream 9b705d8..6d88960 — bump the src/rules submodule to b4634ae (generic ai_rules README; no rule-content or app-behavior change)
+
 ## v2.0.14 - 2026-07-13
 - feat: Global Claude Rules manager — a new "Global Rules" window that merges individual `## rule` sections into the global instruction files (`~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md`); install merges a rule's section idempotently, remove strips it, and per-target badges show which rules are already present
 - feat: bundle the public `enginyilmaaz/ai_rules` repo as the new `src/rules` submodule (manifest.json + preamble.md + rules/<id>.md) so adding or editing a rule is a repo edit with no app rebuild
