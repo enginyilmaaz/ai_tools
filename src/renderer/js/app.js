@@ -81,8 +81,7 @@ var App = {
     _systemInfo: null,
     _standardSkills: [
         'analyze', 'code-review', 'optimize', 'commit', 'jira-api',
-        's3-download', 'playwright', 'fullstack-scaffold',
-        'nodejs-backend-scaffold', 'nextjs-frontend-scaffold'
+        's3-download', 'playwright'
     ],
 
     init: function () {
