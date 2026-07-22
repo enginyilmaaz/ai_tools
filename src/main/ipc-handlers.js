@@ -192,6 +192,50 @@ function registerIpcHandlers() {
         break;
       }
 
+      // ==================== Standalone Hooks ====================
+      case 'getHooks': {
+        const hi = require('./modules/hooks-installer');
+        const manifest = hi.readManifest();
+        sender.send('bridge-reply', {
+          type: 'hooksData',
+          data: {
+            repoFound: !!hi.getHooksRepoDir(),
+            manifest: manifest || { hooks: [] },
+            state: hi.getHooksState()
+          }
+        });
+        break;
+      }
+
+      case 'installHooks': {
+        const wrappedSender = wrapSenderWithMainLog(sender);
+        const log = (msg) => wrappedSender.send('bridge-reply', { type: 'log', data: { message: msg } });
+        const hi = require('./modules/hooks-installer');
+        const ids = (data && data.hooks) || [];
+        log(`[Hooks] Installing ${ids.length} hook(s)...`);
+        const res = hi.installHooks(ids, log);
+        log(res.ok ? `[Hooks] Done: ${(res.applied || []).length} installed` : `[Hooks] Failed: ${res.error}`);
+        wrappedSender.send('bridge-reply', {
+          type: 'installHooksResult',
+          data: { success: !!res.ok, error: res.error || null, applied: res.applied || [], state: hi.getHooksState() }
+        });
+        break;
+      }
+
+      case 'removeHooks': {
+        const wrappedSender = wrapSenderWithMainLog(sender);
+        const log = (msg) => wrappedSender.send('bridge-reply', { type: 'log', data: { message: msg } });
+        const hi = require('./modules/hooks-installer');
+        const ids = (data && data.hooks) || [];
+        log(`[Hooks] Removing ${ids.length} hook(s)...`);
+        const res = hi.removeHooks(ids, log);
+        wrappedSender.send('bridge-reply', {
+          type: 'removeHooksResult',
+          data: { success: !!res.ok, error: res.error || null, removed: res.removed || [], state: hi.getHooksState() }
+        });
+        break;
+      }
+
       // ==================== MCP Servers ====================
       case 'installMcp':
         mcpManager.install(wrapSenderWithMainLog(sender), data);

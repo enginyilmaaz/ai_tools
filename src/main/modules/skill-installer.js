@@ -80,10 +80,10 @@ function getSkillsRepoCandidates() {
     } catch (_) {}
   }
 
-  // Only read from src/skills (bundled submodule). No external fallbacks.
+  // Only read from src/assets/skills (bundled submodule; public flat layout).
   const projectRoot = path.join(__dirname, '..', '..', '..');
-  add(path.join(projectRoot, 'src', 'skills'));
-  add(path.join(projectRoot, 'src', 'Skills'));
+  add(path.join(projectRoot, 'src', 'assets', 'skills'));
+  add(path.join(projectRoot, 'src', 'assets', 'Skills'));
 
   return result;
 }
