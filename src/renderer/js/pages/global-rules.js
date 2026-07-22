@@ -12,6 +12,12 @@
         _busy: false,
         _busyAction: '',
 
+        // Standalone hooks (second section of this combined "Rules & Hooks" window).
+        _hooks: [],
+        _hookState: {},
+        _hooksRepoFound: true,
+        _hookBusy: {},
+
         _escapeHtml: function (value) {
             return String(value == null ? '' : value)
                 .replace(/&/g, '&amp;')
@@ -310,6 +316,79 @@
             '</div>';
         },
 
+        // ----- Hooks section (per-row Install/Remove; Claude Code only) -----
+        _hookName: function (h) { return Bridge._langCode === 'tr' ? h.name_tr : h.name_en; },
+        _hookDesc: function (h) { return Bridge._langCode === 'tr' ? h.desc_tr : h.desc_en; },
+
+        _renderHookRow: function (hook) {
+            var L = Bridge.lang.bind(Bridge);
+            var id = hook.id;
+            var installed = !!this._hookState[id];
+            var busy = !!this._hookBusy[id];
+            var badge = installed ? '<span class="skills-badge skills-badge-category">' + this._escapeHtml(L('HooksInstalled')) + '</span>' : '';
+            var btnLabel = installed ? L('HooksRemove') : L('HooksInstall');
+            var btnClass = installed ? 'btn-secondary' : 'btn-primary';
+            return '' +
+            '<div class="mcp-server-row skills-row">' +
+                '<div class="skills-row-icon"><span class="mi">' + this._escapeHtml(hook.icon || 'bolt') + '</span></div>' +
+                '<div class="mcp-server-info skills-row-info" title="' + this._escapeHtml(this._hookDesc(hook)) + '">' +
+                    '<div class="skills-row-top">' +
+                        '<span class="mcp-server-name skills-row-name">' + this._escapeHtml(this._hookName(hook)) + '</span>' +
+                    '</div>' +
+                    '<div class="skills-row-meta" style="align-items:center">' +
+                        '<span style="font-size:11px;color:var(--text-muted);line-height:1.4">' + this._escapeHtml(this._hookDesc(hook)) + '</span>' +
+                        badge +
+                    '</div>' +
+                '</div>' +
+                '<button class="btn ' + btnClass + ' hooks-row-action" data-hook="' + this._escapeHtml(id) + '" data-installed="' + (installed ? '1' : '0') + '"' + (busy ? ' disabled' : '') + ' style="margin-left:auto">' +
+                    '<span class="mi btn-icon" style="font-size:14px">' + (installed ? 'delete' : 'download') + '</span> ' + this._escapeHtml(btnLabel) +
+                '</button>' +
+            '</div>';
+        },
+
+        _renderHooksList: function () {
+            var listEl = document.getElementById('hooks-list');
+            if (!listEl) return;
+            var L = Bridge.lang.bind(Bridge);
+            if (!this._hooksRepoFound) { listEl.innerHTML = '<div class="skills-empty">' + this._escapeHtml(L('HooksNoSource')) + '</div>'; return; }
+            if (!this._hooks.length) { listEl.innerHTML = '<div class="skills-empty">' + this._escapeHtml(L('HooksEmpty')) + '</div>'; return; }
+            listEl.innerHTML = this._hooks.map(this._renderHookRow.bind(this)).join('');
+            var self = this;
+            listEl.querySelectorAll('.hooks-row-action').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    self._toggleHook(btn.getAttribute('data-hook'), btn.getAttribute('data-installed') === '1');
+                });
+            });
+        },
+
+        _toggleHook: function (id, installed) {
+            if (this._hookBusy[id]) return;
+            this._hookBusy[id] = true;
+            this._renderHooksList();
+            Bridge.send(installed ? 'removeHooks' : 'installHooks', { hooks: [id] });
+        },
+
+        _onHooksData: function (d) {
+            d = d || {};
+            this._hooksRepoFound = d.repoFound !== false;
+            var manifest = d.manifest || { hooks: [] };
+            this._hooks = (manifest.hooks || []).slice();
+            this._hookState = d.state || {};
+            this._renderHooksList();
+        },
+
+        _onHookResult: function (r, action) {
+            var L = Bridge.lang.bind(Bridge);
+            this._hookBusy = {};
+            if (r && r.state) this._hookState = r.state;
+            this._renderHooksList();
+            if (r && r.success) {
+                this._toast(L(action === 'install' ? 'HooksInstallDone' : 'HooksRemoveDone'), '', 'success', 4000);
+            } else {
+                this._toast(L('HooksError'), (r && r.error) ? r.error : '', 'error', 5000);
+            }
+        },
+
         render: function () {
             var L = Bridge.lang.bind(Bridge);
             return '' +
@@ -341,9 +420,22 @@
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div style="display:flex;justify-content:flex-end;gap:8px;padding:8px 0 30px">' +
+                    '<div style="display:flex;justify-content:flex-end;gap:8px;padding:8px 0 18px">' +
                         this._splitGroupHtml('codex') +
                         this._splitGroupHtml('claude') +
+                    '</div>' +
+                    '<div class="mcp-page-header" style="margin-top:4px">' +
+                        '<span class="mi" style="font-size:20px;color:var(--accent-blue)">bolt</span>' +
+                        '<span style="font-size:14px;font-weight:600">' + this._escapeHtml(L('HooksSectionTitle')) + '</span>' +
+                    '</div>' +
+                    '<div class="mcp-two-col skills-group-grid skills-group-grid-single">' +
+                        '<div class="card mcp-col-card skills-col-card">' +
+                            '<div class="card-body">' +
+                                '<div id="hooks-list" class="skills-list">' +
+                                    '<div class="skills-empty">' + this._escapeHtml(L('HooksLoading')) + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="bp-page-actions subpage-footer" style="justify-content:flex-end">' +
@@ -399,7 +491,12 @@
             Bridge.on('installGlobalRulesResult', function (r) { self._onResult(r, 'install'); });
             Bridge.on('removeGlobalRulesResult', function (r) { self._onResult(r, 'remove'); });
 
+            Bridge.on('hooksData', function (d) { self._onHooksData(d); });
+            Bridge.on('installHooksResult', function (r) { self._onHookResult(r, 'install'); });
+            Bridge.on('removeHooksResult', function (r) { self._onHookResult(r, 'remove'); });
+
             Bridge.send('getGlobalRules');
+            Bridge.send('getHooks');
         }
     };
 })();

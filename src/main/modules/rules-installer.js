@@ -23,8 +23,8 @@ const { getPaths } = require('./platform');
 function getRulesRepoCandidates() {
   const projectRoot = path.join(__dirname, '..', '..', '..');
   return [
-    path.join(projectRoot, 'src', 'rules'),
-    path.join(projectRoot, 'src', 'Rules')
+    path.join(projectRoot, 'src', 'assets', 'rules'),
+    path.join(projectRoot, 'src', 'assets', 'Rules')
   ];
 }
 
