@@ -392,7 +392,8 @@
         render: function () {
             var L = Bridge.lang.bind(Bridge);
             return '' +
-            '<div class="subpage-layout mcp-page-layout skills-page-layout">' +
+            '<div class="subpage-layout mcp-page-layout skills-page-layout rules-hooks-layout">' +
+                '<style>.rules-hooks-layout .mcp-two-col{flex:0 0 auto !important}.rules-hooks-layout .mcp-col-card{flex:0 0 auto !important}</style>' +
                 '<div class="mcp-page-header">' +
                     '<span class="mi" style="font-size:20px;color:var(--accent-blue)">rule</span>' +
                     '<span style="font-size:14px;font-weight:600">' + this._escapeHtml(L('GlobalRulesTitle')) + '</span>' +
