@@ -1,6 +1,11 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.16 - 2026-07-27
+- refactor: unify the `src/skills` + `src/rules` submodules into a single `src/assets` (public `ai_assets`); the rules window becomes a combined Rules & Hooks manager with standalone-hook install/remove
+- feat: refresh the plugin catalog — add claude-code-setup, claude-security, skill-creator; drop context7, sentry, chrome-devtools-mcp, ralph-loop
+- chore: sync upstream 6d88960..06917ce — advance `.source`; the fork already carries the equivalent app changes. The upstream "install commands from the app" feature is not ported (commands are private-tier only; the public `ai_assets` ships none)
+
 ## v2.0.15 - 2026-07-13
 - chore: sync upstream 9b705d8..6d88960 — bump the src/rules submodule to b4634ae (generic ai_rules README; no rule-content or app-behavior change)
 
