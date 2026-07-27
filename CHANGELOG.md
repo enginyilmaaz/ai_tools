@@ -1,6 +1,12 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.17 - 2026-07-27
+- refactor: remove the Dev Tools installer page entirely (menu, Quick Access, subwindow, IPC, and the `dev-tools.js` page); the prerequisite-checker stays for other checks
+- feat: skills prerequisite is met when Claude/Codex is present in ANY form — CLI, desktop app, OR VS Code extension (previously required the CLI AND the extension); warn only when none are found
+- build: drop the AppImage (linux) and portable (windows) release targets — releases now ship only the `.deb` and the NSIS installer
+- chore: sync upstream 06917ce..ed95bb8 — advance `.source`; upstream rewrote its history (Co-Authored-By scrub), so most of the range is already-integrated commits. The "install commands from the app" feature stays unported (commands are private-tier only)
+
 ## v2.0.16 - 2026-07-27
 - refactor: unify the `src/skills` + `src/rules` submodules into a single `src/assets` (public `ai_assets`); the rules window becomes a combined Rules & Hooks manager with standalone-hook install/remove
 - feat: refresh the plugin catalog — add claude-code-setup, claude-security, skill-creator; drop context7, sentry, chrome-devtools-mcp, ralph-loop

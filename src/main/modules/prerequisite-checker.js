@@ -136,10 +136,22 @@ async function getSkillsTargetPrerequisites(target) {
     return editors[key].installed && editors[key].extensionInstalled;
   });
 
+  // Skills only need Claude/Codex to be present in ANY form — the CLI, the
+  // desktop app, or the matching VS Code extension. Any one of them is enough,
+  // so we no longer force installing the CLI when the app/extension is present.
+  let appInstalled = false;
+  try {
+    const appCheck = isCodex ? await platform.checkCodexApp() : await platform.checkClaudeDesktop();
+    appInstalled = !!(appCheck && appCheck.found);
+  } catch (_) { appInstalled = false; }
+  const cliInstalled = !!(cliCheck && cliCheck.found);
+
   return {
     target,
-    ok: !!(cliCheck && cliCheck.found) && editorReady,
-    cliInstalled: !!(cliCheck && cliCheck.found),
+    ok: cliInstalled || appInstalled || editorReady,
+    cliInstalled,
+    appInstalled,
+    editorReady,
     editors
   };
 }

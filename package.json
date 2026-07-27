@@ -8,10 +8,8 @@
     "start": "electron . --no-sandbox",
     "dev": "electronmon . --no-sandbox",
     "alive": "electronmon . --no-sandbox",
-    "build:win": "node ./node_modules/electron-builder/cli.js --win nsis portable",
-    "build:win:portable": "node ./node_modules/electron-builder/cli.js --win portable",
+    "build:win": "node ./node_modules/electron-builder/cli.js --win nsis",
     "build:linux": "node ./node_modules/electron-builder/cli.js --linux deb",
-    "build:standalone": "node ./node_modules/electron-builder/cli.js --linux AppImage",
     "set-scripts": "node set-features.js"
   },
   "devDependencies": {
@@ -34,12 +32,6 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "portable",
           "arch": [
             "x64"
           ]
@@ -67,13 +59,6 @@
       "target": [
         {
           "target": "deb",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "AppImage",
           "arch": [
             "x64",
             "arm64"

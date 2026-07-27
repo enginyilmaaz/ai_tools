@@ -130,15 +130,6 @@ var App = {
             if (e.target === menuOverlay) menuOverlay.classList.add('hidden');
         });
 
-        // Dev Tools - separate window
-        var devToolsMenuItem = document.getElementById('mi-dev-tools');
-        if (devToolsMenuItem) {
-            devToolsMenuItem.addEventListener('click', function () {
-                menuOverlay.classList.add('hidden');
-                Bridge.send('openDevTools');
-            });
-        }
-
         // Claude Best Practices - separate window
         var bestPracticesMenuItem = document.getElementById('mi-best-practices');
         if (bestPracticesMenuItem) {
@@ -194,8 +185,6 @@ var App = {
             wtApplySettings.setAttribute('title', Bridge.lang('QuickAccessApplySettingsTooltip') || 'Open Recommended Settings page');
             wtApplySettings.addEventListener('click', function () { Bridge.send('openRecommendedSettings'); });
         }
-        var wtDevTools = document.getElementById('wt-dev-tools');
-        if (wtDevTools) wtDevTools.addEventListener('click', function () { Bridge.send('openDevTools'); });
         var wtBp = document.getElementById('wt-best-practices');
         if (wtBp) wtBp.addEventListener('click', function () { Bridge.send('openBestPractices'); });
         var wtSkills = document.getElementById('wt-skills');
@@ -1286,8 +1275,6 @@ var App = {
         if (el) el.innerHTML = '<span class="mi btn-icon">close</span> ' + L('BtnExit');
 
         // Menu
-        el = $('mi-dev-tools-text');
-        if (el) el.textContent = L('MenuDevTools');
         el = $('mi-best-practices-text');
         if (el) el.textContent = L('MenuBestPractices');
         el = $('mi-skill-usage-text');
@@ -1308,8 +1295,6 @@ var App = {
         // Walkthrough
         el = $('walkthrough-title-text');
         if (el) el.textContent = L('WalkthroughTitle');
-        el = $('wt-dev-tools-text');
-        if (el) el.textContent = L('WalkthroughDevTools');
         el = $('wt-apply-settings-text');
         if (el) el.textContent = L('QuickAccessApplySettings');
         el = $('wt-best-practices-text');

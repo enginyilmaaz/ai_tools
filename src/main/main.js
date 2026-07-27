@@ -346,7 +346,6 @@ function createSubWindow(pageName) {
   else if (pageName === 'global-rules') { winWidth = 660; winHeight = 660; }
   else if (pageName === 'mcp-servers') { winWidth = 725; winHeight = 590; }
   else if (pageName === 'recommended-settings') { winWidth = 795; winHeight = 590; }
-  else if (pageName === 'dev-tools') { winWidth = 520; winHeight = process.platform === 'win32' ? 690 : 610; }
   else { winWidth = 900; winHeight = 700; }
 
   const windowCapabilities = {

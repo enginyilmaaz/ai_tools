@@ -119,10 +119,6 @@ jobs:
             platform: linux-deb
             build_command: yarn build:linux --publish never
             source_glob: "*.deb"
-          - os: ubuntu-latest
-            platform: linux-appimage
-            build_command: yarn build:standalone --publish never
-            source_glob: "*.AppImage"
           - os: windows-latest
             platform: windows
             build_command: yarn build:win --publish never
@@ -179,15 +175,6 @@ jobs:
           TARGET_NAME="${APP_SLUG}_v${SAFE_VERSION}_${PLATFORM}.${EXT}"
           cp "$SOURCE_FILE" "dist/$TARGET_NAME"
           echo "Prepared asset: dist/$TARGET_NAME"
-
-          # Windows: also pick up the portable exe
-          if [[ "$PLATFORM" == "windows" ]]; then
-            PORTABLE="$(find out -type f -name "*.exe" ! -name "*Setup*" ! -name "*uninstall*" ! -name "*blockmap*" ! -path "*/win-unpacked/*" ! -path "*__*" | head -n 1)"
-            if [[ -n "$PORTABLE" ]]; then
-              cp "$PORTABLE" "dist/${APP_SLUG}_v${SAFE_VERSION}_portable.exe"
-              echo "Prepared portable asset: dist/${APP_SLUG}_v${SAFE_VERSION}_portable.exe"
-            fi
-          fi
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4

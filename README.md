@@ -14,14 +14,7 @@ Electron desktop application for managing development tools, Claude Code skills,
 
 ### Main Window
 - **System Info** — Live system dashboard (OS, CPU usage, RAM, disk, uptime) with real-time updates every 3 seconds. Click uptime row to toggle between uptime and boot time.
-- **Quick Access** — One-click shortcuts to Dev Tools, IDE Tweaks, Skills, MCP & Plugins, and Best Practices pages
-
-### Dev Tools (Subwindow)
-- **Tool Management** — Detect, install, and uninstall core dev tools (Node.js/NVM, Git, Claude CLI, Codex CLI, VS Code, extensions, Claude Desktop, Codex App) with table layout
-- **Single UAC** — Windows installs use a single elevated batch script (one admin prompt for all tools)
-- **Silent Install** — All installers run silently in the background with per-tool progress (Queued → Installing → Installed)
-- **Internet Check** — Verifies connectivity before starting downloads
-- **Split Button** — Install Selected / Remove Selected with dropdown toggle
+- **Quick Access** — One-click shortcuts to IDE Tweaks, Skills, MCP & Plugins, Rules & Hooks, and Best Practices pages
 
 ### Skills (Subwindow)
 - **Skills Catalog** — Browse and install general-purpose Claude Code skills from a two-column layout
@@ -67,28 +60,16 @@ yarn start
 
 ## Build
 
-Windows installer + portable:
+Windows installer (NSIS):
 
 ```powershell
 yarn build:win
-```
-
-Windows portable only:
-
-```powershell
-yarn build:win:portable
 ```
 
 Linux `.deb`:
 
 ```bash
 yarn build:linux
-```
-
-Linux AppImage:
-
-```bash
-yarn build:standalone
 ```
 
 ## Tech Stack

@@ -303,10 +303,6 @@ function registerIpcHandlers() {
         if (_createSubWindow) _createSubWindow('mcp-servers');
         break;
 
-      case 'openDevTools':
-        if (_createSubWindow) _createSubWindow('dev-tools');
-        break;
-
       case 'openRecommendedSettings':
         if (_createSubWindow) _createSubWindow('recommended-settings');
         break;
