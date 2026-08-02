@@ -1,6 +1,10 @@
 # Changelog
 
 <!-- changelog-entries:start -->
+## v2.0.18 - 2026-08-03
+- feat: install slash-commands from the app — a Commands section on the Skills page (per-row Install/Remove, Claude Code only) backed by a new `command-installer` that auto-discovers `commands/<group>/<name>.md` from `src/assets` and installs them into `~/.claude/commands/`, including same-basename helper files (e.g. `move-session.sh`), which are marked executable
+- feat: ship `/claude:move-session` via the shared `ai_assets` catalog (now with a `commands/` tier) — moves a Claude Code session transcript to another project directory so `claude --resume` works after the project folder is moved; reverses the earlier "commands feature not ported" note
+
 ## v2.0.17 - 2026-07-27
 - refactor: remove the Dev Tools installer page entirely (menu, Quick Access, subwindow, IPC, and the `dev-tools.js` page); the prerequisite-checker stays for other checks
 - feat: skills prerequisite is met when Claude/Codex is present in ANY form — CLI, desktop app, OR VS Code extension (previously required the CLI AND the extension); warn only when none are found

@@ -7,6 +7,13 @@ window.SkillsPage = {
     _pendingInstallRequest: null,
     _dialogState: null,
 
+    // Slash-commands (separate card below the skills grid). Per-row
+    // Install/Remove, Claude Code only — no checkbox, no target picker.
+    _commands: [],
+    _commandState: {},
+    _commandsRepoFound: true,
+    _commandBusy: {},
+
     _copy: function () {
         var L = Bridge.lang.bind(Bridge);
         return {
@@ -520,6 +527,93 @@ window.SkillsPage = {
         this._updateActions();
     },
 
+    // ----- Command rows (per-row Install/Remove; Claude Code only) -----
+    // Commands live in their OWN card below the skills grid — no checkbox and no
+    // target picker, since they install to Claude Code only. Each row carries a
+    // COMMAND type badge, the /group:name chip, its description, an installed
+    // badge and a single Install/Remove button.
+    _renderCommandRow: function (cmd, installed) {
+        var L = Bridge.lang.bind(Bridge);
+        var id = cmd.id;
+        var name = cmd.name || id;
+        var desc = cmd.description || '';
+        var busy = !!this._commandBusy[id];
+        var badge = installed ? '<span class="skills-badge skills-badge-category">' + this._escapeHtml(L('CommandsInstalled')) + '</span>' : '';
+        var btnLabel = installed ? L('CommandsRemove') : L('CommandsInstall');
+        var btnClass = installed ? 'btn-secondary' : 'btn-primary';
+        return '' +
+        '<div class="mcp-server-row skills-row">' +
+            '<div class="skills-row-icon"><span class="mi">' + this._escapeHtml(cmd.icon || 'terminal') + '</span></div>' +
+            '<div class="mcp-server-info skills-row-info" title="' + this._escapeHtml(desc) + '">' +
+                '<div class="skills-row-top">' +
+                    '<span class="mcp-server-name skills-row-name">' + this._escapeHtml(name) + '</span>' +
+                    '<span class="mcp-type-badge mcp-type-command">' + this._escapeHtml(L('TypeBadgeCommand')) + '</span>' +
+                    '<span class="skills-command-chip" style="margin-left:6px">' + this._escapeHtml(cmd.command) + '</span>' +
+                '</div>' +
+                '<div class="skills-row-meta" style="align-items:center">' +
+                    '<span style="font-size:11px;color:var(--text-muted);line-height:1.4">' + this._escapeHtml(desc) + '</span>' +
+                    badge +
+                '</div>' +
+            '</div>' +
+            '<button class="btn ' + btnClass + ' commands-row-action" data-command="' + this._escapeHtml(id) + '" data-installed="' + (installed ? '1' : '0') + '"' + (busy ? ' disabled' : '') + ' style="margin-left:auto">' +
+                '<span class="mi btn-icon" style="font-size:14px">' + (installed ? 'delete' : 'download') + '</span> ' + this._escapeHtml(btnLabel) +
+            '</button>' +
+        '</div>';
+    },
+
+    // Fill (and re-wire) the #commands-list container. Renders a no-source / empty
+    // message when appropriate; safe to call from the initial load and from any
+    // commands event independently of the skills grid.
+    _renderCommandsSection: function () {
+        var listEl = document.getElementById('commands-list');
+        if (!listEl) return;
+        var L = Bridge.lang.bind(Bridge);
+        if (!this._commandsRepoFound) {
+            listEl.innerHTML = '<div class="skills-empty">' + this._escapeHtml(L('CommandsNoSource')) + '</div>';
+            return;
+        }
+        if (!this._commands.length) {
+            listEl.innerHTML = '<div class="skills-empty">' + this._escapeHtml(L('CommandsEmpty')) + '</div>';
+            return;
+        }
+        var self = this;
+        listEl.innerHTML = this._commands.map(function (cmd) {
+            return self._renderCommandRow(cmd, !!self._commandState[cmd.id]);
+        }).join('');
+        listEl.querySelectorAll('.commands-row-action').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                self._toggleCommand(btn.getAttribute('data-command'), btn.getAttribute('data-installed') === '1');
+            });
+        });
+    },
+
+    _toggleCommand: function (id, installed) {
+        if (this._commandBusy[id]) return;
+        this._commandBusy[id] = true;
+        this._renderCommandsSection();
+        Bridge.send(installed ? 'removeCommands' : 'installCommands', { commands: [id] });
+    },
+
+    _onCommandsData: function (d) {
+        d = d || {};
+        this._commandsRepoFound = d.repoFound !== false;
+        this._commands = (d.commands || []).slice();
+        this._commandState = d.state || {};
+        this._renderCommandsSection();
+    },
+
+    _onCommandResult: function (r, kind) {
+        var L = Bridge.lang.bind(Bridge);
+        this._commandBusy = {};
+        if (r && r.state) this._commandState = r.state;
+        this._renderCommandsSection();
+        if (r && r.success) {
+            this._toast(L(kind === 'install' ? 'CommandsInstallDone' : 'CommandsRemoveDone'), '', 'success', 4000);
+        } else {
+            this._toast(L('CommandsError'), (r && r.error) ? r.error : '', 'error', 5000);
+        }
+    },
+
     render: function () {
         var t = this._copy();
         var groups = this._getGroups();
@@ -580,6 +674,23 @@ window.SkillsPage = {
                                 '<img src="assets/devtools/claude.svg" style="width:14px;height:14px;margin-right:4px" alt=""> ' +
                                 '<span>' + (Bridge.lang('SkillsRemoveSelectedFromClaude') || 'Remove from Claude') + '</span>' +
                             '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                // Slash-commands: own card below the skills grid (per-row
+                // Install/Remove, Claude Code only). Filled by _renderCommandsSection().
+                '<div class="commands-section">' +
+                    '<div class="card">' +
+                        '<div class="card-body">' +
+                            '<div class="skills-card-header" style="margin-bottom:8px">' +
+                                '<div class="skills-card-title">' +
+                                    '<span class="mi" style="font-size:15px;vertical-align:-2px;margin-right:5px;color:var(--accent-blue)">terminal</span>' +
+                                    this._escapeHtml(Bridge.lang('CommandsSectionTitle') || 'Commands') +
+                                '</div>' +
+                            '</div>' +
+                            '<div id="commands-list" class="skills-list">' +
+                                '<div class="skills-empty">' + this._escapeHtml(Bridge.lang('CommandsLoading') || Bridge.lang('CommonLoading')) + '</div>' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
@@ -798,6 +909,13 @@ window.SkillsPage = {
                 self._toast(Bridge.lang('CommonError'), data.message, 'error', 5000);
             }
         });
+
+        // Commands section (Claude Code slash-commands). Register listeners
+        // before requesting data, then load the discovered commands.
+        Bridge.on('commandsData', function (d) { self._onCommandsData(d); });
+        Bridge.on('installCommandsResult', function (r) { self._onCommandResult(r, 'install'); });
+        Bridge.on('removeCommandsResult', function (r) { self._onCommandResult(r, 'remove'); });
+        Bridge.send('getCommands');
 
         this._ensureCatalogLoaded()
             .then(function (catalog) {

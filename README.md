@@ -20,6 +20,7 @@ Electron desktop application for managing development tools, Claude Code skills,
 - **Skills Catalog** — Browse and install general-purpose Claude Code skills from a two-column layout
 - **Skills Guide** — Detailed documentation for each skill with search, examples, and auto-trigger info
 - **Dual Target** — Install to Claude or Codex with split dropdown button
+- **Commands** — Install or remove Claude Code slash-commands (per-row, Claude Code only) bundled from the shared catalog; e.g. `/claude:move-session`
 
 ### MCP & Plugins (Subwindow)
 - **MCP Servers** — Install, configure, and remove MCP servers (Postman, Atlassian, GitHub, Figma)

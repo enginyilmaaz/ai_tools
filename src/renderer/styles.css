@@ -2872,6 +2872,28 @@ body.subwindow-host.best-practices-page-active .bp-main-scroll {
     color: var(--color-warn);
 }
 
+/* Unified-list type badges (Skills & Commands page). Skills + rules share the
+   primary (blue) tone; commands + hooks share the accent (green) tone — same
+   shape/padding as the MCP/plugin badges above. */
+.mcp-type-skill,
+.mcp-type-rule {
+    background: var(--accent-blue-bg);
+    color: var(--accent-blue);
+}
+
+.mcp-type-command,
+.mcp-type-hook {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}
+
+/* When the badge sits inline next to the row name (in .skills-row-top) rather
+   than stacked below it, drop the column-layout top margin and add a small gap. */
+.skills-row-top .mcp-type-badge {
+    margin-top: 0;
+    margin-left: 6px;
+}
+
 .mcp-server-row {
     display: flex;
     align-items: center;
@@ -3317,6 +3339,13 @@ body.subwindow-host.best-practices-page-active .bp-main-scroll {
     flex: 1;
     box-sizing: border-box;
     padding: 4px 10px 8px;
+}
+
+/* Slash-commands card sits below the two-column skills grid. Keep it at its
+   natural (content) height instead of stretching as a flex-column child. */
+.skills-page-layout .commands-section {
+    flex: 0 0 auto;
+    margin-top: 4px;
 }
 
 .skills-platform-badge {

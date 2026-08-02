@@ -236,6 +236,50 @@ function registerIpcHandlers() {
         break;
       }
 
+      // ==================== Slash Commands ====================
+      case 'getCommands': {
+        const ci = require('./modules/command-installer');
+        const scan = ci.scanCommands();
+        sender.send('bridge-reply', {
+          type: 'commandsData',
+          data: {
+            repoFound: !!ci.getCommandsRepoDir(),
+            commands: (scan && scan.commands) || [],
+            state: ci.getCommandsState()
+          }
+        });
+        break;
+      }
+
+      case 'installCommands': {
+        const wrappedSender = wrapSenderWithMainLog(sender);
+        const log = (msg) => wrappedSender.send('bridge-reply', { type: 'log', data: { message: msg } });
+        const ci = require('./modules/command-installer');
+        const ids = (data && data.commands) || [];
+        log(`[Commands] Installing ${ids.length} command(s)...`);
+        const res = ci.installCommands(ids, log);
+        log(res.ok ? `[Commands] Done: ${(res.applied || []).length} installed` : `[Commands] Failed: ${res.error}`);
+        wrappedSender.send('bridge-reply', {
+          type: 'installCommandsResult',
+          data: { success: !!res.ok, error: res.error || null, applied: res.applied || [], state: ci.getCommandsState() }
+        });
+        break;
+      }
+
+      case 'removeCommands': {
+        const wrappedSender = wrapSenderWithMainLog(sender);
+        const log = (msg) => wrappedSender.send('bridge-reply', { type: 'log', data: { message: msg } });
+        const ci = require('./modules/command-installer');
+        const ids = (data && data.commands) || [];
+        log(`[Commands] Removing ${ids.length} command(s)...`);
+        const res = ci.removeCommands(ids, log);
+        wrappedSender.send('bridge-reply', {
+          type: 'removeCommandsResult',
+          data: { success: !!res.ok, error: res.error || null, removed: res.removed || [], state: ci.getCommandsState() }
+        });
+        break;
+      }
+
       // ==================== MCP Servers ====================
       case 'installMcp':
         mcpManager.install(wrapSenderWithMainLog(sender), data);
